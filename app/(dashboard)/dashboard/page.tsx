@@ -1,4 +1,3 @@
-
 import { fetchData } from "@/lib/serverApi";
 
 export default async function Dashboard() {

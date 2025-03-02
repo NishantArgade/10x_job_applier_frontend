@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
+import React, { useState } from "react";
 import axiosClient from "@/lib/axiosClient";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 
 const RegisterPage = () => {
   const router = useRouter();
-  const { setUser } = useAuth();
+
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -24,13 +23,7 @@ const RegisterPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    setErrors({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+    setErrors({ name: "", email: "", password: "", confirmPassword: "" });
 
     if (!newUser.name) {
       setErrors({ ...errors, name: "Name is required" });
@@ -58,16 +51,14 @@ const RegisterPage = () => {
     }
 
     try {
-      const resp = await axiosClient.post("/api/v1/register", {
+      const resp = await axiosClient.post("/api/v1/auth/register", {
         name: newUser.name,
         email: newUser.email,
         password: newUser.password,
         password_confirmation: newUser.confirmPassword,
       });
 
-      setUser(resp.data.user);
-      router.push(resp.data.redirect || "/dashboard");
-      
+      router.replace(resp.data?.redirect || "/dashboard");
     } catch (error: any) {
       setErrors({ ...errors, email: error.message });
     }
@@ -110,7 +101,9 @@ const RegisterPage = () => {
               placeholder="name@company.com"
               className="w-full px-4 py-2 mt-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              onChange={(e) =>
+                setNewUser({ ...newUser, email: e.target.value })
+              }
             />
             {errors.email && (
               <p className="text-red-500 text-xs">{errors.email}</p>
@@ -125,7 +118,9 @@ const RegisterPage = () => {
               placeholder="••••••••"
               className="w-full px-4 py-2 mt-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
             />
             {errors.password && (
               <p className="text-red-500 text-xs">{errors.password}</p>

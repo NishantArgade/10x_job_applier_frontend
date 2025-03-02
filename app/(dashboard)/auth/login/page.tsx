@@ -5,14 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/lib/axiosClient";
-import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
   const router = useRouter();
-  const { setUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,12 +19,12 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const resp = await axiosClient.post("/api/v1/login", {
+      const resp = await axiosClient.post("/api/v1/auth/login", {
         email,
         password,
+        remember: rememberMe,
       });
 
-      setUser(resp.data?.name);
       router.push(resp.data?.redirect || "/dashboard");
     } catch (error: any) {
       setError(error.message);
@@ -78,6 +77,8 @@ const LoginPage = () => {
                 type="checkbox"
                 id="remember"
                 className="w-3 h-3 text-blue-500 bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                checked={rememberMe}
+                onChange={() => setRememberMe((prev) => !prev)}
               />
               <label
                 htmlFor="remember"
@@ -103,7 +104,10 @@ const LoginPage = () => {
           <hr className="w-full border-gray-300 dark:border-gray-600" />
         </div>
         <div className="flex items-center gap-4 text-xs">
-          <button className="flex items-center justify-center w-full px-2 py-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+          <a
+            href={`http://127.0.0.1:8000/api/v1/auth/google/redirect`}
+            className="flex items-center justify-center w-full px-2 py-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+          >
             <Image
               src="https://www.svgrepo.com/show/355037/google.svg"
               width={16}
@@ -112,17 +116,20 @@ const LoginPage = () => {
               className="mr-2"
             />
             Sign in with Google
-          </button>
-          <button className="flex items-center justify-center w-full px-2 py-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+          </a>
+          <a
+            href={`http://127.0.0.1:8000/api/v1/auth/github/redirect`}
+            className="flex items-center justify-center w-full px-2 py-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+          >
             <Image
-              src="https://www.svgrepo.com/show/355037/google.svg"
+              src="https://www.svgrepo.com/show/512317/github-142.svg"
               width={16}
               height={16}
               alt="Git Logo"
               className="mr-2"
             />
             Sign in with Github
-          </button>
+          </a>
         </div>
       </div>
     </div>

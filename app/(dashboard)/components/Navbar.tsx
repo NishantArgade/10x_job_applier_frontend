@@ -11,7 +11,7 @@ export default function Navbar() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { setUser, user } = useAuth();
+  const { setUser, user, loading } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -19,11 +19,15 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axiosClient.post("/api/v1/logout");
+      await axiosClient.post(
+        "/api/v1/auth/logout",
+        {},
+        { withCredentials: true }
+      );
       setUser(null);
       router.push("/auth/login");
     } catch (error) {
-      console.log(error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -31,7 +35,14 @@ export default function Navbar() {
     <nav className="flex justify-between items-center py-2 px-4 bg-gray-200 dark:bg-gray-900">
       <h1 className="text-lg font-bold text-gray-900 dark:text-white">MyApp</h1>
       <div className="flex items-center gap-4">
-        {user && <button onClick={handleLogout}>Logout</button>}
+        {user && (
+          <button
+            onClick={handleLogout}
+            className="text-gray-900 dark:text-white"
+          >
+            Logout
+          </button>
+        )}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="p-2 rounded-md bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white"
