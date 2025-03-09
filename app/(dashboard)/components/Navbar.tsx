@@ -1,59 +1,52 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/solid";
-import axiosClient from "@/lib/axiosClient";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
-export default function Navbar() {
-  const router = useRouter();
+export default function Navbar({
+  isOpen,
+  toggleSidebar,
+}: {
+  isOpen: boolean;
+  toggleSidebar: () => void;
+}) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { setUser, user, loading } = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await axiosClient.post(
-        "/api/v1/auth/logout",
-        {},
-        { withCredentials: true }
-      );
-      setUser(null);
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   return (
-    <nav className="flex justify-between items-center py-2 px-4 bg-gray-200 dark:bg-gray-900">
-      <h1 className="text-lg font-bold text-gray-900 dark:text-white">MyApp</h1>
-      <div className="flex items-center gap-4">
-        {user && (
-          <button
-            onClick={handleLogout}
-            className="text-gray-900 dark:text-white"
-          >
-            Logout
+    <>
+      <nav className="flex  justify-between items-center py-3 px-4 bg-gray-50  dark:bg-gray-900 sticky top-0 w-full  shadow-md z-10">
+        <div className="flex items-center gap-4 ">
+          <button onClick={toggleSidebar} className="flex items-center gap-2">
+            {isOpen ? (
+              <ChevronLeftIcon className="w-5 h-5" />
+            ) : (
+              <ChevronRightIcon className="w-5 h-5" />
+            )}
           </button>
-        )}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-md bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          {mounted && theme === "dark" ? (
-            <SunIcon className="h-3 w-3" />
-          ) : (
-            <MoonIcon className="h-3 w-3" />
-          )}
-        </button>
-      </div>
-    </nav>
+          <h1 className="text-lg font-bold">10x Job Applier</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className={`flex items-center w-full gap-3 p-2 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 ${
+              isOpen ? "justify-start" : "justify-center"
+            }`}
+          >
+            {mounted && theme === "dark" ? (
+              <SunIcon className="h-5 w-5" />
+            ) : (
+              <MoonIcon className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }
