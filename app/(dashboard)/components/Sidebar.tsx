@@ -11,6 +11,7 @@ import {
   UserIcon,
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 const SidebarItem = ({
   icon,
@@ -49,7 +50,13 @@ const SidebarItem = ({
   );
 };
 
-const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
+const Sidebar = ({
+  isOpen,
+  toggleSidebar,
+}: {
+  isOpen: boolean;
+  toggleSidebar: () => void;
+}) => {
   const router = useRouter();
   const { setUser } = useAuth();
 
@@ -70,17 +77,28 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
   return (
     <div
       className={`flex flex-col border-r dark:border-gray-800 shadow-md border-gray-200 fixed left-0 top-0 h-full transition-[width] ${
-        isOpen ? "duration-300 w-64" : "duration-0 w-20"
+        isOpen
+          ? "duration-300 w-full md:w-64"
+          : "duration-0 w-20  hidden md:flex"
       }`}
     >
       {/* Header */}
-      <div className="py-2 px-4 border-b dark:border-gray-800 border-gray-200">
+      <div className="flex items-center gap-2 py-2 px-4 p-0 border-b dark:border-gray-800 border-gray-200">
         <SidebarItem
           icon={<UserIcon className="w-5 h-5" />}
           text="Nishant"
           href="/profile"
           isOpen={isOpen}
         />
+        <div className="md:hidden block">
+          <button onClick={toggleSidebar} className="flex items-center gap-2 ">
+            {isOpen ? (
+              <ChevronLeftIcon className="w-5 h-5" />
+            ) : (
+              <ChevronRightIcon className="w-5 h-5" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}

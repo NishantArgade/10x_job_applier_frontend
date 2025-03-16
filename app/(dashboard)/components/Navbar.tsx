@@ -21,7 +21,7 @@ export default function Navbar({
 
   return (
     <>
-      <nav className="flex  justify-between items-center py-3 px-4 bg-gray-50  dark:bg-gray-900 sticky top-0 w-full  shadow-md z-10">
+      <nav className="flex justify-between items-center py-3 px-4 bg-gray-50  dark:bg-gray-900 sticky top-0 w-full  shadow-md z-10">
         <div className="flex items-center gap-4 ">
           <button onClick={toggleSidebar} className="flex items-center gap-2">
             {isOpen ? (
