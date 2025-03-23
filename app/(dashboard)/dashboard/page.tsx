@@ -2,35 +2,55 @@ import { Suspense } from "react";
 import { fetchData } from "@/lib/serverApi";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { ArrowUpRightIcon, ChartBarIcon } from "@heroicons/react/24/solid";
+import {
+  ClockIcon,
+  PaperAirplaneIcon,
+  XCircleIcon,
+  ChatBubbleLeftRightIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/solid";
+
+type StatItem = {
+  key: string;
+  title: string;
+  value: string;
+  iconType?: string; // Received from backend
+  tooltip?: string;
+};
+
+// Mapping backend `iconType` to actual Heroicons
+const iconMap: Record<string, React.ReactNode> = {
+  clock: <ClockIcon className="w-7 h-7" />, // Pending
+  "paper-plane": <PaperAirplaneIcon className="w-7 h-7" />, // Sent
+  "x-circle": <XCircleIcon className="w-7 h-7" />, // Failed
+  "chat-bubble": <ChatBubbleLeftRightIcon className="w-7 h-7" />, // Recruiter Replies
+  default: <ChartBarIcon className="w-7 h-7" />, // Default icon
+};
 
 async function DashboardContent() {
-  const response = await fetchData("/api/v1/dashboard");
+  const resp = await fetchData("/api/v1/dashboard");
 
-  function StatsCard({ title, value, icon, delta, tooltip }:any) {
+  function StatsCard({ title, value, iconType, tooltip }: StatItem) {
     return (
-      <div className="hover:bg-blue-100 bg-blue-50 dark:bg-gray-900 rounded-2xl p-6 shadow-lg dark:shadow-md dark:hover:shadow-lg transition-all flex justify-between items-center relative">
+      <div className="group relative bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
         {/* Left Content */}
-        <div className="space-y-1">
-          <div className="text-gray-500 dark:text-gray-400 text-sm font-medium relative">
+        <div className="space-y-2">
+          <div className="text-gray-600 dark:text-gray-400 text-sm font-semibold tracking-wide uppercase">
             {title}
-            {tooltip && (
-              <div className="absolute left-0 mt-2 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-md dark:bg-gray-700">
-                {tooltip}
-              </div>
-            )}
           </div>
-          <div className="text-4xl font-bold text-gray-900 dark:text-white">
+          <div className="text-5xl font-extrabold text-gray-900 dark:text-white group-hover:scale-105 transition-transform duration-300">
             {value}
           </div>
-          <div className="flex items-center gap-2 text-green-500 text-xs font-medium mt-1">
-            <ArrowUpRightIcon className="w-3 h-3" />
-            <span>{delta}</span>
-          </div>
+          {tooltip && (
+            <div className="text-gray-500 dark:text-gray-400 text-xs italic opacity-80">
+              {tooltip}
+            </div>
+          )}
         </div>
+
         {/* Right Icon */}
-        <div className="w-12 h-12 flex items-center justify-center bg-red-500 dark:bg-red-600 text-white rounded-full shadow-md">
-          {<ChartBarIcon className="w-6 h-6" />}
+        <div className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 bg-red-500 dark:bg-red-600 text-white rounded-full shadow-md transform scale-100 group-hover:scale-110 transition-transform duration-300">
+          {iconMap[iconType || "default"]}
         </div>
       </div>
     );
@@ -39,10 +59,15 @@ async function DashboardContent() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title={'Applied Jobs'} value={'242,2'}  delta={'123 delta'} />
-        <StatsCard title={'Pending Jobs'} value={'242,2'}  delta={'123 delta'} />
-        <StatsCard title={'Interview Schedule'} value={'242,2'}  delta={'123 delta'} />
-        <StatsCard title={'Offer Received'} value={'242,2'}  delta={'123 delta'} />
+        {resp?.stats.map((stat: StatItem) => (
+          <StatsCard
+            key={stat.key}
+            title={stat.title}
+            value={stat.value}
+            iconType={stat.iconType}
+            tooltip={stat.tooltip}
+          />
+        ))}
       </div>
       <div>
         <div className="h-28 bg-gray-800 rounded-lg">chart</div>
