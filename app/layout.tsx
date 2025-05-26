@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/(dashboard)/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
-import { Poppins } from 'next/font/google';
+import { Poppins } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 
 const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  variable: '--font-poppins',
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={poppins.variable}>
       <body suppressHydrationWarning className="font-poppins">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        {" "}
+        <ThemeProvider>
+          <Toaster />
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>

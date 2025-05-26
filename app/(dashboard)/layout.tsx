@@ -10,9 +10,9 @@ export default function DashboardPage({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
     <div className="flex h-screen overflow-hidden text-gray-800 dark:text-white bg-gray-50  dark:bg-gray-900">
+      {/* Toaster moved to main layout */}
       <Sidebar
         isOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
