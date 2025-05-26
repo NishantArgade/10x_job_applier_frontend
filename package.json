@@ -26,12 +26,10 @@
     "mammoth": "^1.9.0",
     "next": "^15.1.7",
     "next-themes": "^0.4.4",
-    "pdfjs-dist": "^3.11.174",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-loading-skeleton": "^3.5.0",
-    "react-pdf": "^9.2.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -49,8 +47,7 @@
     "file-loader": "^6.2.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5",
-    "worker-loader": "^3.0.8"
+    "typescript": "^5"
   },
   "description": "this is job applier website",
   "main": "index.js",

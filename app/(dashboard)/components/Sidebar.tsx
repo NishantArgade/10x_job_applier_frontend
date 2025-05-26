@@ -130,12 +130,6 @@ const Sidebar = ({
           isOpen={isOpen}
         />
         <SidebarItem
-          icon={<DocumentIcon className="w-5 h-5" />}
-          text="Resumes"
-          href="/resume"
-          isOpen={isOpen}
-        />
-        <SidebarItem
           icon={<DocumentTextIcon className="w-5 h-5" />}
           text="Resumes"
           href="/resumes"
