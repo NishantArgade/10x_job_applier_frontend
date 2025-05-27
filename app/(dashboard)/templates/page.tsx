@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "../components/RichTextEditor";
 
 interface Template {
@@ -79,7 +78,6 @@ export default function TemplatesPage() {
   const handleCreateTemplate = async () => {
     if (isCreating) return;
 
-    // Validate required fields
     if (!formData.name.trim()) {
       toast.error("Template name is required");
       return;
@@ -108,7 +106,6 @@ export default function TemplatesPage() {
   const handleUpdateTemplate = async () => {
     if (!currentTemplate || isUpdating) return;
 
-    // Validate required fields
     if (!formData.name.trim()) {
       toast.error("Template name is required");
       return;
@@ -179,7 +176,7 @@ export default function TemplatesPage() {
       month: "short",
       day: "numeric",
     });
-  }; // We'll use Shadcn Dialog components directly
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -275,12 +272,11 @@ export default function TemplatesPage() {
             </Card>
           ))}
         </div>
-      )}{" "}
-      {/* Create Template Dialog */}{" "}
+      )}
+      {/* Create Template Dialog */}
       <Dialog
         open={isCreateDialogOpen}
         onOpenChange={(open) => {
-          // Only allow closing if not currently creating
           if (!open && !isCreating) setIsCreateDialogOpen(false);
         }}
       >
@@ -339,12 +335,11 @@ export default function TemplatesPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>{" "}
-      {/* Edit Template Dialog */}{" "}
+      </Dialog>
+      {/* Edit Template Dialog */}
       <Dialog
         open={isEditDialogOpen}
         onOpenChange={(open) => {
-          // Only allow closing if not currently updating
           if (!open && !isUpdating) setIsEditDialogOpen(false);
         }}
       >
@@ -411,7 +406,6 @@ export default function TemplatesPage() {
       <Dialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
-          // Only allow closing if not currently deleting
           if (!open && !isDeleting) setIsDeleteDialogOpen(false);
         }}
       >
@@ -440,7 +434,7 @@ export default function TemplatesPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>{" "}
+      </Dialog>
       {/* View Template Dialog */}{" "}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-[700px] w-full max-h-[90vh] overflow-y-hidden">

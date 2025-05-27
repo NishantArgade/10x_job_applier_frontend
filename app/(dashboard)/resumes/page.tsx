@@ -79,13 +79,13 @@ export default function ResumesPage() {
       setSelectedFile(file);
     }
   };
+
   const handleUploadResume = async () => {
     if (isUploading || !selectedFile) return;
 
     try {
       setIsUploading(true);
 
-      //   In a real application, this would be:
       const formData = new FormData();
       formData.append("resume", selectedFile);
       const data = await axiosClient.post("/api/v1/resume", formData, {
@@ -94,7 +94,6 @@ export default function ResumesPage() {
         },
       });
 
-      // Update the state with the new resume
       setResumes((prevResumes) => [data.data.resume, ...prevResumes]);
 
       setIsUploadDialogOpen(false);
@@ -107,19 +106,15 @@ export default function ResumesPage() {
       setIsUploading(false);
     }
   };
+
   const handleDeleteResume = async () => {
     if (!currentResume || isDeleting) return;
 
     try {
       setIsDeleting(true);
 
-      // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      // In a real application, this would be:
-      // await axiosClient.delete(`/api/v1/resume/${currentResume.id}`);
-
-      // Simulate successful deletion by removing from our mock data
       setResumes((prevResumes) =>
         prevResumes.filter((resume) => resume.id !== currentResume.id)
       );
@@ -147,10 +142,11 @@ export default function ResumesPage() {
       day: "numeric",
     });
   };
+
   const handleViewResume = (resumePath: string) => {
-    // Open the resume in a new tab
     window.open(resumePath, "_blank", "noopener,noreferrer");
   };
+
   const PdfThumbnail = ({ filename }: { filename: string }) => {
     return (
       <div
@@ -198,6 +194,7 @@ export default function ResumesPage() {
       </div>
     );
   };
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -285,7 +282,6 @@ export default function ResumesPage() {
       <Dialog
         open={isUploadDialogOpen}
         onOpenChange={(open) => {
-          // Only allow closing if not currently uploading
           if (!open && !isUploading) {
             setIsUploadDialogOpen(false);
             setSelectedFile(null);
@@ -359,7 +355,6 @@ export default function ResumesPage() {
       <Dialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
-          // Only allow closing if not currently deleting
           if (!open && !isDeleting) setIsDeleteDialogOpen(false);
         }}
       >

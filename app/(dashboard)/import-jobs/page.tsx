@@ -28,20 +28,17 @@ const ImportJobsPage = () => {
   const [processSuccess, setProcessSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // New states for resume and template selection
+
   const [resumes, setResumes] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedResume, setSelectedResume] = useState<any | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
-  
-  // Dialog open states
+
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
-  // Fetch resumes and templates on component mount
   useEffect(() => {
     fetchResumes();
     fetchTemplates();
@@ -50,7 +47,6 @@ const ImportJobsPage = () => {
     setIsLoadingResumes(true);
     try {
       const response = await axiosClient.get("/api/v1/resumes");
-      // Check the structure of the response and ensure we're setting an array
       const resumesData = response.data?.resumes || response.data || [];
       setResumes(Array.isArray(resumesData) ? resumesData : []);
       console.log("Resumes response:", response.data);
@@ -60,11 +56,11 @@ const ImportJobsPage = () => {
       setIsLoadingResumes(false);
     }
   };
+
   const fetchTemplates = async () => {
     setIsLoadingTemplates(true);
     try {
       const response = await axiosClient.get("/api/v1/templates");
-      // Check the structure of the response and ensure we're setting an array
       const templatesData = response.data?.templates || response.data || [];
       setTemplates(Array.isArray(templatesData) ? templatesData : []);
       console.log("Templates response:", response.data);
@@ -164,18 +160,18 @@ const ImportJobsPage = () => {
         setIsLoading(false);
         return;
       }
-      
+
       const formData = new FormData();
       formData.append("applications_csv", file);
       formData.append("template_id", selectedTemplate.id);
-      formData.append("resume_id", selectedResume.id);      await axiosClient.post("/api/v1/jobs/import", formData, {
+      formData.append("resume_id", selectedResume.id);
+      await axiosClient.post("/api/v1/jobs/import", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
       setUploadSuccess(true);
-      // Reset file and selections after successful upload
       setFile(null);
       setSelectedResume(null);
       setSelectedTemplate(null);
@@ -293,8 +289,9 @@ const ImportJobsPage = () => {
           accept=".csv,.xlsx"
           onChange={handleFileSelect}
           ref={fileInputRef}
-        />{" "}
-      </div>{" "}      {/* Resume and Template Selection Section */}
+        />
+      </div>
+
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <Dialog open={resumeDialogOpen} onOpenChange={setResumeDialogOpen}>
           <DialogTrigger asChild>
@@ -310,7 +307,8 @@ const ImportJobsPage = () => {
               hover:shadow-md dark:hover:shadow-gray-800/30 flex items-center justify-between
             `}
             >
-              {" "}              <div className="flex items-center justify-between gap-6 w-full">
+              {" "}
+              <div className="flex items-center justify-between gap-6 w-full">
                 <div className="flex items-center flex-1 space-x-4">
                   <div
                     className={`
@@ -351,25 +349,31 @@ const ImportJobsPage = () => {
                         : "Choose the resume to use for job applications"}
                     </p>
                   </div>
-                </div>                <div className="flex items-center space-x-2">
+                </div>{" "}
+                <div className="flex items-center space-x-2">
                   {selectedResume && (
-                    <button 
+                    <button
                       type="button"
                       onClick={(e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         setSelectedResume(null);
                       }}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Reset selection"
                     >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   )}
@@ -409,9 +413,11 @@ const ImportJobsPage = () => {
                 </div>
               </div>
             </div>
-          </DialogTrigger>          <DialogContent className="sm:max-w-md">
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Select Resume</DialogTitle>              <DialogDescription>
+              <DialogTitle>Select Resume</DialogTitle>{" "}
+              <DialogDescription>
                 Choose the resume you want to use for job applications
               </DialogDescription>
             </DialogHeader>
@@ -447,7 +453,9 @@ const ImportJobsPage = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
-                  {Array.isArray(resumes) && resumes.length > 0 ? (                    resumes.map((resume) => (                      <div
+                  {Array.isArray(resumes) && resumes.length > 0 ? (
+                    resumes.map((resume) => (
+                      <div
                         key={resume?.id || Math.random().toString()}
                         onClick={() => {
                           setSelectedResume(resume);
@@ -554,7 +562,8 @@ const ImportJobsPage = () => {
                   )}
                 </div>
               )}
-            </div>{" "}            <DialogFooter className="sm:justify-end">
+            </div>{" "}
+            <DialogFooter className="sm:justify-end">
               <Link
                 href="/resumes"
                 className="flex items-center px-4 py-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
@@ -576,7 +585,8 @@ const ImportJobsPage = () => {
                 Manage Resumes
               </Link>
             </DialogFooter>
-          </DialogContent>        </Dialog>{" "}
+          </DialogContent>{" "}
+        </Dialog>{" "}
         <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
           <DialogTrigger asChild>
             <div
@@ -635,25 +645,31 @@ const ImportJobsPage = () => {
                         : "Choose the template for job applications"}
                     </p>
                   </div>
-                </div>                <div className="flex items-center space-x-2">
+                </div>{" "}
+                <div className="flex items-center space-x-2">
                   {selectedTemplate && (
-                    <button 
+                    <button
                       type="button"
                       onClick={(e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         setSelectedTemplate(null);
                       }}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Reset selection"
                     >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   )}
@@ -693,9 +709,11 @@ const ImportJobsPage = () => {
                 </div>
               </div>
             </div>
-          </DialogTrigger>          <DialogContent className="sm:max-w-md">
+          </DialogTrigger>{" "}
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Select Template</DialogTitle>              <DialogDescription>
+              <DialogTitle>Select Template</DialogTitle>{" "}
+              <DialogDescription>
                 Choose the template you want to use for job applications
               </DialogDescription>
             </DialogHeader>
@@ -732,7 +750,8 @@ const ImportJobsPage = () => {
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {Array.isArray(templates) && templates.length > 0 ? (
-                    templates.map((template) => (                      <div
+                    templates.map((template) => (
+                      <div
                         key={template?.id || Math.random().toString()}
                         onClick={() => {
                           setSelectedTemplate(template);
@@ -835,7 +854,8 @@ const ImportJobsPage = () => {
                   )}
                 </div>
               )}
-            </div>{" "}            <DialogFooter className="sm:justify-end">
+            </div>{" "}
+            <DialogFooter className="sm:justify-end">
               <Link
                 href="/templates"
                 className="flex items-center px-4 py-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
@@ -929,8 +949,10 @@ const ImportJobsPage = () => {
           onClick={handleSubmit}
           disabled={!file || !selectedResume || !selectedTemplate || isLoading}
           className={cn("flex items-center", {
-            "opacity-50 cursor-not-allowed": !file || !selectedResume || !selectedTemplate,
-            "opacity-100 cursor-pointer": file && selectedResume && selectedTemplate
+            "opacity-50 cursor-not-allowed":
+              !file || !selectedResume || !selectedTemplate,
+            "opacity-100 cursor-pointer":
+              file && selectedResume && selectedTemplate,
           })}
         >
           {isLoading ? (
