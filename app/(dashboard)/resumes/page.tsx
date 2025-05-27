@@ -48,7 +48,6 @@ export default function ResumesPage() {
   const [currentResume, setCurrentResume] = useState<Resume | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isActive, setIsActive] = useState(true);
 
   const fetchResumes = async () => {
     try {
@@ -89,7 +88,6 @@ export default function ResumesPage() {
       //   In a real application, this would be:
       const formData = new FormData();
       formData.append("resume", selectedFile);
-      formData.append("is_active", isActive ? "1" : "0");
       const data = await axiosClient.post("/api/v1/resume", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -101,7 +99,6 @@ export default function ResumesPage() {
 
       setIsUploadDialogOpen(false);
       setSelectedFile(null);
-      setIsActive(true);
       toast.success("Resume uploaded successfully");
     } catch (error) {
       console.error("Failed to upload resume:", error);
@@ -213,11 +210,15 @@ export default function ResumesPage() {
         </Button>
       </div>
 
-      {loading ? (        <div className="flex flex-col justify-center items-center h-48 sm:h-64">
+      {loading ? (
+        <div className="flex flex-col justify-center items-center h-48 sm:h-64">
           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground mt-4 text-sm sm:text-base">Loading resumes...</p>
+          <p className="text-muted-foreground mt-4 text-sm sm:text-base">
+            Loading resumes...
+          </p>
         </div>
-      ) : resumes.length === 0 ? (        <Card className="text-center py-8 sm:py-12 px-4">
+      ) : resumes.length === 0 ? (
+        <Card className="text-center py-8 sm:py-12 px-4">
           <CardContent className="pt-4 sm:pt-6">
             <h3 className="text-lg font-medium">No resumes found</h3>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
@@ -231,13 +232,15 @@ export default function ResumesPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : (        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {resumes.map((resume) => (
             <Card
               key={resume.id}
               className="relative overflow-hidden shadow-xl border-2 border-primary/60 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl transition-all duration-200 hover:scale-[1.025] hover:shadow-2xl w-full flex flex-col justify-between"
               style={{ height: "auto", minHeight: "350px" }}
-            >              <CardHeader className="pb-2 flex flex-col gap-2">
+            >
+              <CardHeader className="pb-2 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm sm:text-md md:text-md font-bold truncate text-white flex-1">
                     {resume.original_filename}
@@ -249,11 +252,13 @@ export default function ResumesPage() {
                     {formatDate(resume.created_at)}
                   </span>
                 </p>
-              </CardHeader><CardContent className="flex-1 flex items-center justify-center p-2">
+              </CardHeader>
+              <CardContent className="flex-1 flex items-center justify-center p-2">
                 <div className="w-full h-[180px] sm:h-[220px] md:h-[250px] rounded-lg overflow-hidden border border-gray-700 bg-black/40 shadow-inner">
                   <PdfThumbnail filename={resume.original_filename} />
                 </div>
-              </CardContent>              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 border-t border-border/40 bg-gray-900/80">
+              </CardContent>
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 border-t border-border/40 bg-gray-900/80">
                 <Button
                   onClick={() => handleViewResume(resume.download_url)}
                   variant="outline"
@@ -276,7 +281,8 @@ export default function ResumesPage() {
         </div>
       )}
 
-      {/* Upload Resume Dialog */}      <Dialog
+      {/* Upload Resume Dialog */}
+      <Dialog
         open={isUploadDialogOpen}
         onOpenChange={(open) => {
           // Only allow closing if not currently uploading
@@ -331,19 +337,8 @@ export default function ResumesPage() {
                 Only PDF files are accepted
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="h-4 w-4 rounded border border-input bg-background text-primary"
-              />
-              <Label htmlFor="is_active" className="text-sm font-medium">
-                Active Resume
-              </Label>
-            </div>
-          </div>          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
             <DialogClose asChild>
               <Button variant="outline" disabled={isUploading} className="w-full sm:w-auto">
                 Cancel
@@ -360,7 +355,8 @@ export default function ResumesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Resume Confirmation Dialog */}      <Dialog
+      {/* Delete Resume Confirmation Dialog */}
+      <Dialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
           // Only allow closing if not currently deleting
@@ -376,7 +372,8 @@ export default function ResumesPage() {
               Are you sure you want to delete &quot;{currentResume?.original_filename}
               &quot;? This action cannot be undone.
             </p>
-          </div>          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
             <DialogClose asChild>
               <Button variant="outline" disabled={isDeleting} className="w-full sm:w-auto">
                 Cancel

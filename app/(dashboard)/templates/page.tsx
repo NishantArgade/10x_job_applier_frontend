@@ -5,7 +5,7 @@ import {
   PlusCircleIcon,
   PencilSquareIcon,
   TrashIcon,
-  XMarkIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import axiosClient from "@/lib/axiosClient";
 import toast from "react-hot-toast";
@@ -29,13 +29,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "../components/RichTextEditor";
 
 interface Template {
   id: number;
   name: string;
   subject: string | null;
   body: string;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -46,16 +46,18 @@ export default function TemplatesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState<Template | null>(null);
+  const [viewTemplate, setViewTemplate] = useState<Template | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
     body: "",
-    is_active: true,
-  });  const fetchTemplates = async () => {
+  });
+  const fetchTemplates = async () => {
     try {
       setLoading(true);
       const response = await axiosClient.get("/api/v1/templates");
@@ -63,7 +65,7 @@ export default function TemplatesPage() {
     } catch (error) {
       console.error("Failed to fetch templates:", error);
       toast.error("Failed to load templates", {
-        position: "top-right"
+        position: "top-right",
       });
     } finally {
       setLoading(false);
@@ -72,25 +74,27 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     fetchTemplates();
-  }, []);  const handleCreateTemplate = async () => {
+  }, []);
+
+  const handleCreateTemplate = async () => {
     if (isCreating) return;
-    
+
     // Validate required fields
     if (!formData.name.trim()) {
       toast.error("Template name is required");
       return;
     }
-    
+
     if (!formData.body.trim()) {
       toast.error("Template body is required");
       return;
     }
-    
+
     try {
       setIsCreating(true);
       await axiosClient.post("/api/v1/template", formData);
       setIsCreateDialogOpen(false);
-      setFormData({ name: "", subject: "", body: "", is_active: true });
+      setFormData({ name: "", subject: "", body: "" });
       toast.success("Template created successfully");
       fetchTemplates();
     } catch (error) {
@@ -99,26 +103,28 @@ export default function TemplatesPage() {
     } finally {
       setIsCreating(false);
     }
-  };  const handleUpdateTemplate = async () => {
+  };
+
+  const handleUpdateTemplate = async () => {
     if (!currentTemplate || isUpdating) return;
-    
+
     // Validate required fields
     if (!formData.name.trim()) {
       toast.error("Template name is required");
       return;
     }
-    
+
     if (!formData.body.trim()) {
       toast.error("Template body is required");
       return;
     }
-    
+
     try {
       setIsUpdating(true);
       await axiosClient.put(`/api/v1/template/${currentTemplate.id}`, formData);
       setIsEditDialogOpen(false);
       setCurrentTemplate(null);
-      setFormData({ name: "", subject: "", body: "", is_active: true });
+      setFormData({ name: "", subject: "", body: "" });
       toast.success("Template updated successfully");
       fetchTemplates();
     } catch (error) {
@@ -127,7 +133,9 @@ export default function TemplatesPage() {
     } finally {
       setIsUpdating(false);
     }
-  };  const handleDeleteTemplate = async () => {
+  };
+
+  const handleDeleteTemplate = async () => {
     if (!currentTemplate || isDeleting) return;
 
     try {
@@ -151,7 +159,6 @@ export default function TemplatesPage() {
       name: template.name,
       subject: template.subject || "",
       body: template.body,
-      is_active: template.is_active,
     });
     setIsEditDialogOpen(true);
   };
@@ -159,6 +166,11 @@ export default function TemplatesPage() {
   const openDeleteDialog = (template: Template) => {
     setCurrentTemplate(template);
     setIsDeleteDialogOpen(true);
+  };
+
+  const openViewDialog = (template: Template) => {
+    setViewTemplate(template);
+    setIsViewDialogOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -179,7 +191,8 @@ export default function TemplatesPage() {
         >
           <PlusCircleIcon className="h-4 w-4" /> Create Template
         </Button>
-      </div>      {loading ? (
+      </div>{" "}
+      {loading ? (
         <div className="flex flex-col justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           <p className="text-muted-foreground mt-4">Loading templates...</p>
@@ -199,52 +212,62 @@ export default function TemplatesPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : (        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
             <Card
               key={template.id}
-              className="overflow-hidden hover:shadow-lg transition-all hover:translate-y-[-2px] border-t-4 border-t-primary"
+              className="overflow-hidden  relative shadow-xl border-2 border-primary/60 dark:bg-gradient-to-br  dark:from-gray-900  dark:via-gray-800  dark:to-gray-900 rounded-2xl transition-all duration-200 hover:scale-[1.025] hover:shadow-2xl w-full flex flex-col justify-between"
             >
               <CardHeader className="pb-3">
+                {" "}
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-semibold">{template.name}</CardTitle>
-                  <span
-                    className={`px-2 py-0.5 text-xs rounded-full ${
-                      template.is_active 
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" 
-                        : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                    }`}
-                  >
-                    {template.is_active ? "Active" : "Inactive"}
-                  </span>
+                  <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-200">
+                    {template.name}
+                  </CardTitle>
                 </div>
                 <CardDescription className="text-sm mt-2">
                   {template.subject && (
-                    <div className="font-medium text-primary dark:text-primary">{template.subject}</div>
+                    <div className="font-medium text-primary dark:text-primary truncate">
+                      {template.subject}
+                    </div>
                   )}
-                  <div className="text-muted-foreground mt-1 text-xs">
+                  {/* <div className="text-muted-foreground mt-1 text-xs">
                     Last updated: {formatDate(template.updated_at)}
-                  </div>
+                  </div> */}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
-                <p className="line-clamp-3 text-muted-foreground text-sm">
-                  {template.body}
-                </p>
+              <CardContent className="pt-0 flex-1">
+                <div
+                  className="line-clamp-6 text-muted-foreground text-sm leading-relaxed mt-2"
+                  dangerouslySetInnerHTML={{ __html: template.body }}
+                />
               </CardContent>
-              <CardFooter className="flex justify-end gap-2 pt-2 border-t border-border/40">
+              <CardFooter className="flex justify-end gap-2 pt-2 border-t border-border/40   dark:bg-gradient-to-br  dark:from-gray-900  dark:via-gray-900  dark:to-gray-800">
+                {" "}
+                <Button
+                  onClick={() => openViewDialog(template)}
+                  variant="ghost"
+                  size="sm"
+                  className="group/view flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  <EyeIcon className="h-4 w-4 mr-1 group-hover/view:text-primary" />{" "}
+                  View
+                </Button>
                 <Button
                   onClick={() => openEditDialog(template)}
                   variant="ghost"
                   size="sm"
+                  className="group/edit flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
                 >
-                  <PencilSquareIcon className="h-4 w-4 mr-1" /> Edit
+                  <PencilSquareIcon className="h-4 w-4 mr-1 group-hover/edit:text-primary" />{" "}
+                  Edit
                 </Button>
                 <Button
                   onClick={() => openDeleteDialog(template)}
                   variant="ghost"
                   size="sm"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 flex items-center gap-1"
                 >
                   <TrashIcon className="h-4 w-4 mr-1" /> Delete
                 </Button>
@@ -252,16 +275,16 @@ export default function TemplatesPage() {
             </Card>
           ))}
         </div>
-      )}{" "}      {/* Create Template Dialog */}      <Dialog
+      )}{" "}
+      {/* Create Template Dialog */}{" "}
+      <Dialog
         open={isCreateDialogOpen}
         onOpenChange={(open) => {
           // Only allow closing if not currently creating
           if (!open && !isCreating) setIsCreateDialogOpen(false);
         }}
       >
-        <DialogContent 
-          className="sm:max-w-md" 
-          closeDisabled={isCreating}>
+        <DialogContent className="sm:max-w-md" closeDisabled={isCreating}>
           <DialogHeader>
             <DialogTitle>Create New Template</DialogTitle>
           </DialogHeader>
@@ -295,63 +318,40 @@ export default function TemplatesPage() {
               <Label htmlFor="body" className="flex items-center">
                 Template Body <span className="text-destructive ml-1">*</span>
               </Label>
-              <Textarea
-                id="body"
-                value={formData.body}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setFormData({ ...formData, body: e.target.value })
-                }
-                placeholder="Write your template content here..."
-                rows={8}
-                required
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({
-                      ...formData,
-                      is_active: e.target.checked,
-                    })
+              <div className="h-[200px] overflow-y-auto">
+                <RichTextEditor
+                  value={formData.body}
+                  setValue={(value: string) =>
+                    setFormData({ ...formData, body: value })
                   }
-                  className="h-4 w-4 rounded border border-input bg-background text-primary"
                 />
-                <Label htmlFor="is_active" className="text-sm font-medium">
-                  Active template
-                </Label>
               </div>
             </div>
-          </div>          <DialogFooter>
+          </div>{" "}
+          <DialogFooter>
             <DialogClose asChild>
-              <Button
-                variant="outline"
-                disabled={isCreating}
-              >
+              <Button variant="outline" disabled={isCreating}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button 
-              onClick={handleCreateTemplate} 
-              disabled={isCreating}
-            >
+            <Button onClick={handleCreateTemplate} disabled={isCreating}>
               {isCreating ? "Creating..." : "Create Template"}
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>{" "}      {/* Edit Template Dialog */}      <Dialog
+      </Dialog>{" "}
+      {/* Edit Template Dialog */}{" "}
+      <Dialog
         open={isEditDialogOpen}
         onOpenChange={(open) => {
           // Only allow closing if not currently updating
           if (!open && !isUpdating) setIsEditDialogOpen(false);
         }}
       >
-        <DialogContent 
-          className="sm:max-w-md"
-          closeDisabled={isUpdating}>
+        <DialogContent
+          className="sm:max-w-md max-h-[90vh] overflow-y-hidden"
+          closeDisabled={isUpdating}
+        >
           <DialogHeader>
             <DialogTitle>Edit Template</DialogTitle>
           </DialogHeader>
@@ -385,63 +385,37 @@ export default function TemplatesPage() {
               <Label htmlFor="edit-body" className="flex items-center">
                 Template Body <span className="text-destructive ml-1">*</span>
               </Label>
-              <Textarea
-                id="edit-body"
-                value={formData.body}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setFormData({ ...formData, body: e.target.value })
-                }
-                placeholder="Write your template content here..."
-                rows={8}
-                required
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit-is_active"
-                  checked={formData.is_active}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({
-                      ...formData,
-                      is_active: e.target.checked,
-                    })
+              <div className="h-[200px] overflow-y-auto">
+                <RichTextEditor
+                  value={formData.body}
+                  setValue={(value: string) =>
+                    setFormData({ ...formData, body: value })
                   }
-                  className="h-4 w-4 rounded border border-input bg-background text-primary"
                 />
-                <Label htmlFor="edit-is_active" className="text-sm font-medium">
-                  Active template
-                </Label>
               </div>
             </div>
-          </div>          <DialogFooter>
+          </div>{" "}
+          <DialogFooter>
             <DialogClose asChild>
-              <Button
-                variant="outline"
-                disabled={isUpdating}
-              >
+              <Button variant="outline" disabled={isUpdating}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button 
-              onClick={handleUpdateTemplate}
-              disabled={isUpdating}
-            >
+            <Button onClick={handleUpdateTemplate} disabled={isUpdating}>
               {isUpdating ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>{" "}      {/* Delete Template Confirmation Dialog */}      <Dialog
+      </Dialog>{" "}
+      {/* Delete Template Confirmation Dialog */}{" "}
+      <Dialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
           // Only allow closing if not currently deleting
           if (!open && !isDeleting) setIsDeleteDialogOpen(false);
         }}
       >
-        <DialogContent 
-          className="sm:max-w-md"
-          closeDisabled={isDeleting}>
+        <DialogContent className="sm:max-w-md" closeDisabled={isDeleting}>
           <DialogHeader>
             <DialogTitle>Delete Template</DialogTitle>
           </DialogHeader>
@@ -450,21 +424,46 @@ export default function TemplatesPage() {
               Are you sure you want to delete &quot;{currentTemplate?.name}
               &quot;? This action cannot be undone.
             </p>
-          </div>          <DialogFooter>
+          </div>{" "}
+          <DialogFooter>
             <DialogClose asChild>
-              <Button
-                variant="outline"
-                disabled={isDeleting}
-              >
+              <Button variant="outline" disabled={isDeleting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteTemplate}
               disabled={isDeleting}
             >
               {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>{" "}
+      {/* View Template Dialog */}{" "}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-[700px] w-full max-h-[90vh] overflow-y-hidden">
+          <DialogHeader>
+            <DialogTitle>{viewTemplate?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mb-2 text-primary font-medium text-base">
+            {viewTemplate?.subject}
+          </div>
+          <div className="text-xs text-muted-foreground mb-4">
+            Last updated:{" "}
+            {viewTemplate ? formatDate(viewTemplate.updated_at) : ""}
+          </div>
+          <div
+            className="prose max-w-none text-foreground h-[300px] overflow-y-auto p-4 border rounded-md"
+            dangerouslySetInnerHTML={{ __html: viewTemplate?.body || "" }}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsViewDialogOpen(false)}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
