@@ -31,10 +31,9 @@ type JobApplication = {
   cover: string
 }
 
-export default function JobsPage() {
-  const [loading, setLoading] = useState(true)
+export default function JobsPage() {  const [loading, setLoading] = useState(true)
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([])
-  const [globalFilter, setGlobalFilter] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
   
   // Status options for filtering
   const statusOptions = [
@@ -47,7 +46,11 @@ export default function JobsPage() {
   ]
   
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  
+  const [selectedSources, setSelectedSources] = useState<string[]>([])
+
+  // Compute unique sources for dropdown
+  const sourceOptions = Array.from(new Set(jobApplications.map(j => j.source))).map(source => ({ label: source, value: source }))
+
   useEffect(() => {
     // In a real application, fetch data from your API
     const fetchJobApplications = async () => {
@@ -170,6 +173,28 @@ export default function JobsPage() {
             resume: "resume_10.pdf",
             cover: "cover_10.pdf"
           },
+          {
+            id: "10",
+            jobTitle: "Systems Architect",
+            company: "ArchSystems",
+            location: "Atlanta, GA",
+            applicationDate: "2025-03-01",
+            status: "applied",
+            source: "Linkedin",
+            resume: "resume_10.pdf",
+            cover: "cover_10.pdf"
+          },
+          {
+            id: "10",
+            jobTitle: "Systems Architect",
+            company: "ArchSystems",
+            location: "Atlanta, GA",
+            applicationDate: "2025-03-01",
+            status: "applied",
+            source: "Linkedin",
+            resume: "resume_10.pdf",
+            cover: "cover_10.pdf"
+          },
         ]
         
         setJobApplications(mockData)
@@ -183,11 +208,24 @@ export default function JobsPage() {
     
     fetchJobApplications()
   }, [])
-  
-  // Filter jobs based on selected statuses
-  const filteredJobs = selectedStatuses.length > 0
-    ? jobApplications.filter(job => selectedStatuses.includes(job.status))
-    : jobApplications
+    // Filter jobs based on selected statuses, search term, and selected sources
+  const filteredJobs = jobApplications.filter(job => {
+    // Filter by status if any status is selected
+    const statusMatch = selectedStatuses.length > 0 
+      ? selectedStatuses.includes(job.status) 
+      : true
+    // Filter by search term across multiple columns (excluding source)
+    const searchMatch = searchTerm.trim() === "" ? true : (
+      job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.location.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    // Filter by selected sources
+    const sourceMatch = selectedSources.length > 0
+      ? selectedSources.includes(job.source)
+      : true
+    return statusMatch && searchMatch && sourceMatch
+  })
   
   // Status badge component
   const StatusBadge = ({ status }: { status: JobApplication["status"] }) => {
@@ -318,15 +356,34 @@ export default function JobsPage() {
         <Button className="w-full md:w-auto">Add New Application</Button>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-        <div className="space-y-4">          <Input 
-            placeholder="Search by job title, company, location..." 
-            value={globalFilter}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
-            className="max-w-md"
-          />
-          
-          <div className="flex flex-wrap gap-2">
+      <div className="grid gap-4 md:grid-cols-[1fr_auto]">        <div className="space-y-4">
+          <div className="flex gap-2 items-center">
+            <div className="relative w-full max-w-md">
+              <Input 
+                placeholder="Search by job title, company, location..." 
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <XCircleIcon className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            {/* Source Multi-Select Dropdown */}
+            <div className="w-56">
+              <SourceMultiSelect
+                options={sourceOptions}
+                selected={selectedSources}
+                onChange={setSelectedSources}
+              />
+            </div>
+          </div>
+            <div className="flex flex-wrap gap-2">
             {statusOptions.map((status) => (
               <div
                 key={status.value}
@@ -357,12 +414,49 @@ export default function JobsPage() {
                 className="text-xs h-7 px-2"
                 onClick={() => setSelectedStatuses([])}
               >
-                Clear filters
+                Clear status
               </Button>
             )}
           </div>
+          
+          {/* Clear all filters button */}
+          {(searchTerm || selectedStatuses.length > 0 || selectedSources.length > 0) && (
+            <div className="flex justify-end mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedStatuses([]);
+                  setSelectedSources([]);
+                }}
+              >
+                <XCircleIcon className="h-4 w-4" />
+                Clear all filters
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
+      </div>      {/* Search Results Summary */}
+      {!loading && (
+        <div className="text-sm text-muted-foreground">
+          {searchTerm || selectedStatuses.length > 0 || selectedSources.length > 0 ? (
+            <span>
+              Found {filteredJobs.length} {filteredJobs.length === 1 ? "result" : "results"}
+              {searchTerm && <> for "<span className="font-medium">{searchTerm}</span>"</>}
+              {selectedStatuses.length > 0 && (
+                <> with status: {selectedStatuses.map(s => <span key={s} className="font-medium capitalize">{s}</span>).reduce((prev, curr) => [prev, ', ', curr] as any)}</>
+              )}
+              {selectedSources.length > 0 && (
+                <> from source{selectedSources.length > 1 ? 's' : ''}: {selectedSources.map(s => <span key={s} className="font-medium">{s}</span>).reduce((prev, curr) => [prev, ', ', curr] as any)}</>
+              )}
+            </span>
+          ) : (
+            <span>Showing all {jobApplications.length} job applications</span>
+          )}
+        </div>
+      )}
       
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64">
@@ -373,9 +467,102 @@ export default function JobsPage() {
         <DataTable
           columns={columns}
           data={filteredJobs}
-          searchKey="jobTitle"
-          searchPlaceholder="Filter by job title..."
         />
+      )}
+    </div>
+  )
+}
+
+// Multi-select dropdown for sources using shadcn Select
+import * as React from "react"
+import { CheckIcon } from "@radix-ui/react-icons"
+import { ChevronDown, ChevronUp } from "lucide-react"
+
+interface SourceMultiSelectProps {
+  options: { label: string; value: string }[]
+  selected: string[]
+  onChange: (selected: string[]) => void
+}
+
+function SourceMultiSelect({ options, selected, onChange }: SourceMultiSelectProps) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  
+  // Toggle selection
+  const handleSelect = (e: React.MouseEvent, value: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (selected.includes(value)) {
+      onChange(selected.filter((v) => v !== value))
+    } else {
+      onChange([...selected, value])
+    }
+  }
+
+  return (
+    <div className="relative">
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={isOpen}
+        className="w-full min-w-[180px] justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate">
+          {selected.length === 0
+            ? "Filter by source"
+            : `${selected.length} source${selected.length > 1 ? 's' : ''}`}
+        </span>
+        <span className="shrink-0 opacity-50">
+          {isOpen ? (
+            <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+          )}
+        </span>
+      </Button>
+      {isOpen && (
+        <div className="absolute top-full mt-1 z-50 w-full rounded-md border bg-popover shadow-md">
+          <div className="max-h-60 overflow-y-auto p-1">
+            {options.length === 0 && (
+              <div className="px-2 py-1.5 text-sm text-muted-foreground">No sources</div>
+            )}
+            {options.map((option) => (
+              <div
+                key={option.value}
+                onClick={(e) => handleSelect(e, option.value)}
+                className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+              >
+                <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                  {selected.includes(option.value) && (
+                    <CheckIcon className="h-4 w-4" />
+                  )}
+                </span>
+                <span className="flex-1">{option.label}</span>
+              </div>
+            ))}
+          </div>
+          {selected.length > 0 && (
+            <div className="border-t p-1">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-center text-xs font-medium text-destructive hover:text-destructive"
+                onClick={() => {
+                  onChange([])
+                  setIsOpen(false)
+                }}
+              >
+                Clear all
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setIsOpen(false)}
+        ></div>
       )}
     </div>
   )
