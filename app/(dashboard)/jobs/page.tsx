@@ -548,7 +548,7 @@ export default function JobsPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-3xl font-bold">Job Applications</h1>
-        <Button className="w-full md:w-auto">Add New Application</Button>
+        {/* <Button className="w-full md:w-auto">Add New Application</Button> */}
       </div>
       <div className="grid gap-4 md:grid-cols-[1fr_auto]">
         <div className="space-y-4">
