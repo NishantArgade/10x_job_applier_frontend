@@ -16,6 +16,8 @@ import {
   ClockIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@radix-ui/react-icons";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -36,6 +38,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 type JobApplication = {
   id: string;
@@ -60,6 +65,25 @@ type JobApplication = {
   followup_freq?: number;
   website?: string;
 };
+
+const jobSchema = yup.object().shape({
+  apply_for: yup.string().required("Job Title is required"),
+  company: yup.string().required("Company is required"),
+  location: yup.string().required("Location is required"),
+  apply_at: yup.string().required("Application Date is required"),
+  status: yup.string().required("Status is required"),
+  source: yup.string().required("Source is required"),
+  website: yup
+    .string()
+    .url("Website must be a valid URL")
+    .nullable()
+    .notRequired(),
+  name: yup.string().nullable().notRequired(),
+  email: yup.string().email("Invalid email").nullable().notRequired(),
+  phone: yup.string().nullable().notRequired(),
+  followup_after_days: yup.number().nullable().notRequired(),
+  followup_freq: yup.number().nullable().notRequired(),
+});
 
 export default function JobsPage() {
   const router = useRouter();
@@ -109,30 +133,63 @@ export default function JobsPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   // Handle form submission for editing a job application
-  const handleUpdateJob = async () => {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(jobSchema) as any, // type assertion to bypass resolver typing issue
+    defaultValues: {
+      apply_for: editFormData?.apply_for || "",
+      company: editFormData?.company || "",
+      location: editFormData?.location || "",
+      apply_at: editFormData?.apply_at || "",
+      status: editFormData?.status || "applied",
+      source: editFormData?.source || "",
+      website: editFormData?.website || "",
+      name: editFormData?.name || "",
+      email: editFormData?.email || "",
+      phone: editFormData?.phone || "",
+      followup_after_days: editFormData?.followup_after_days ?? undefined,
+      followup_freq: editFormData?.followup_freq ?? undefined,
+      resume: editFormData?.resume || "",
+      cover: editFormData?.cover || "",
+      id: editFormData?.id || "",
+    },
+  });
+
+  useEffect(() => {
+    if (isEditDialogOpen && selectedJob) {
+      reset(selectedJob);
+    }
+  }, [isEditDialogOpen, selectedJob, reset]);
+
+  const handleUpdateJob = handleSubmit(async (data) => {
     try {
       setIsSubmitting(true);
-
       if (!selectedJob?.id) return;
-
-      await axiosClient.put(`/api/v1/jobs/${selectedJob.id}`, editFormData);
-
-      // Update the job application in the local state
+      await axiosClient.put(`/api/v1/jobs/${selectedJob.id}`, data);
       setJobApplications((prev) =>
         prev.map((job) =>
-          job.id === selectedJob.id
-            ? ({ ...job, ...editFormData } as JobApplication)
-            : job
+          job.id === selectedJob.id ? ({ ...job, ...data } as JobApplication) : job
         )
       );
-
       setIsEditDialogOpen(false);
       setIsSubmitting(false);
-    } catch (error) {
-      console.error("Failed to update job application:", error);
+    } catch (error: any) {
+      // Laravel validation error handling
+      if (error.response && error.response.status === 422 && error.response.data.errors) {
+        const apiErrors = error.response.data.errors;
+        Object.keys(apiErrors).forEach((field) => {
+          setError(field as keyof typeof errors, { type: "server", message: apiErrors[field][0] });
+        });
+      }
       setIsSubmitting(false);
     }
-  };
+  });
 
   // Handle deleting a job application
   const handleDeleteJob = async () => {
@@ -538,9 +595,7 @@ export default function JobsPage() {
                   <XCircleIcon className="h-3 w-3" />
                 )}
               </div>
-            ))}
-
-            {selectedStatuses.length > 0 && (
+            ))}            {selectedStatuses.length > 0 && (
               <Button
                 variant="ghost"
                 className="text-xs h-7 px-2"
@@ -774,171 +829,154 @@ export default function JobsPage() {
               <Label htmlFor="apply_for">Job Title</Label>
               <Input
                 id="apply_for"
-                value={editFormData.apply_for || ""}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    apply_for: e.target.value,
-                  })
-                }
+                {...register("apply_for")}
+                className={errors.apply_for ? "border-red-500" : ""}
               />
+              {errors.apply_for && (
+                <p className="text-red-500 text-xs mt-1">{errors.apply_for.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="company">Company</Label>
               <Input
                 id="company"
-                value={editFormData.company || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, company: e.target.value })
-                }
+                {...register("company")}
+                className={errors.company ? "border-red-500" : ""}
               />
+              {errors.company && (
+                <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
-                value={editFormData.location || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, location: e.target.value })
-                }
+                {...register("location")}
+                className={errors.location ? "border-red-500" : ""}
               />
+              {errors.location && (
+                <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="apply_at">Application Date</Label>
               <Input
                 id="apply_at"
                 type="date"
-                value={
-                  editFormData.apply_at
-                    ? new Date(editFormData.apply_at)
-                        .toISOString()
-                        .split("T")[0]
-                    : ""
-                }
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    apply_at: e.target.value,
-                  })
-                }
+                {...register("apply_at")}
+                className={errors.apply_at ? "border-red-500" : ""}
               />
+              {errors.apply_at && (
+                <p className="text-red-500 text-xs mt-1">{errors.apply_at.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>
-              <Select
-                value={editFormData.status}
-                onValueChange={(value) =>
-                  setEditFormData({
-                    ...editFormData,
-                    status: value as JobApplication["status"],
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>{" "}
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className={errors.status ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.status && (
+                <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
+              )}
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="source">Source</Label>
               <Input
                 id="source"
-                value={editFormData.source || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, source: e.target.value })
-                }
+                {...register("source")}
+                className={errors.source ? "border-red-500" : ""}
               />
+              {errors.source && (
+                <p className="text-red-500 text-xs mt-1">{errors.source.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
-                value={editFormData.website || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, website: e.target.value })
-                }
+                {...register("website")}
+                className={errors.website ? "border-red-500" : ""}
               />
+              {errors.website && (
+                <p className="text-red-500 text-xs mt-1">{errors.website.message}</p>
+              )}
             </div>
-            {/* New fields */}
             <div className="grid gap-2">
               <Label htmlFor="name">Contact Name</Label>
               <Input
                 id="name"
-                value={editFormData.name || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, name: e.target.value })
-                }
+                {...register("name")}
+                className={errors.name ? "border-red-500" : ""}
               />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                value={editFormData.email || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, email: e.target.value })
-                }
+                {...register("email")}
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
-                value={editFormData.phone || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, phone: e.target.value })
-                }
+                {...register("phone")}
+                className={errors.phone ? "border-red-500" : ""}
               />
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="followup_after_days">
-                Follow-up After (Days)
-              </Label>
+              <Label htmlFor="followup_after_days">Follow-up After (Days)</Label>
               <Input
                 id="followup_after_days"
                 type="number"
-                value={
-                  editFormData.followup_after_days !== undefined
-                    ? editFormData.followup_after_days
-                    : ""
-                }
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    followup_after_days: e.target.value
-                      ? parseInt(e.target.value)
-                      : undefined,
-                  })
-                }
+                {...register("followup_after_days")}
+                className={errors.followup_after_days ? "border-red-500" : ""}
               />
+              {errors.followup_after_days && (
+                <p className="text-red-500 text-xs mt-1">{errors.followup_after_days.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="followup_freq">Follow-up Frequency (Days)</Label>
               <Input
                 id="followup_freq"
                 type="number"
-                value={
-                  editFormData.followup_freq !== undefined
-                    ? editFormData.followup_freq
-                    : ""
-                }
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    followup_freq: e.target.value
-                      ? parseInt(e.target.value)
-                      : undefined,
-                  })
-                }
+                {...register("followup_freq")}
+                className={errors.followup_freq ? "border-red-500" : ""}
               />
+              {errors.followup_freq && (
+                <p className="text-red-500 text-xs mt-1">{errors.followup_freq.message}</p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -986,17 +1024,13 @@ export default function JobsPage() {
             >
               {isSubmitting ? "Deleting..." : "Delete"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
+          </DialogFooter>        </DialogContent>
       </Dialog>
     </div>
   );
 }
 
-import * as React from "react";
-import { CheckIcon } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronUp } from "lucide-react";
-
+// SourceMultiSelect component
 interface SourceMultiSelectProps {
   options: { label: string; value: string }[];
   selected: string[];
@@ -1008,7 +1042,7 @@ function SourceMultiSelect({
   selected,
   onChange,
 }: SourceMultiSelectProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (e: React.MouseEvent, value: string) => {
     e.preventDefault();
