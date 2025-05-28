@@ -18,13 +18,31 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 type JobApplication = {
   id: string;
-  jobTitle: string;
+  apply_for: string;
   company: string;
   location: string;
-  applicationDate: string;
+  apply_at: string;
   status:
     | "applied"
     | "interview"
@@ -35,6 +53,12 @@ type JobApplication = {
   source: string;
   resume: string;
   cover: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  followup_after_days?: number;
+  followup_freq?: number;
+  website?: string;
 };
 
 export default function JobsPage() {
@@ -45,6 +69,14 @@ export default function JobsPage() {
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  // Modal state variables
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobApplication | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<JobApplication>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -75,6 +107,55 @@ export default function JobsPage() {
   });
 
   const [totalCount, setTotalCount] = useState(0);
+
+  // Handle form submission for editing a job application
+  const handleUpdateJob = async () => {
+    try {
+      setIsSubmitting(true);
+
+      if (!selectedJob?.id) return;
+
+      await axiosClient.put(`/api/v1/jobs/${selectedJob.id}`, editFormData);
+
+      // Update the job application in the local state
+      setJobApplications((prev) =>
+        prev.map((job) =>
+          job.id === selectedJob.id
+            ? ({ ...job, ...editFormData } as JobApplication)
+            : job
+        )
+      );
+
+      setIsEditDialogOpen(false);
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Failed to update job application:", error);
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle deleting a job application
+  const handleDeleteJob = async () => {
+    try {
+      setIsSubmitting(true);
+
+      if (!selectedJob?.id) return;
+
+      await axiosClient.delete(`/api/v1/jobs/${selectedJob.id}`);
+
+      // Remove the job application from the local state
+      setJobApplications((prev) =>
+        prev.filter((job) => job.id !== selectedJob.id)
+      );
+      setTotalCount((prev) => prev - 1);
+
+      setIsDeleteDialogOpen(false);
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Failed to delete job application:", error);
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchJobApplications = async () => {
@@ -195,10 +276,10 @@ export default function JobsPage() {
       enableHiding: false,
     },
     {
-      accessorKey: "jobTitle",
+      accessorKey: "apply_for",
       header: "Job Title",
       cell: ({ row }) => {
-        return <div className="font-medium">{row.getValue("jobTitle")}</div>;
+        return <div className="font-medium">{row.getValue("apply_for")}</div>;
       },
     },
     {
@@ -210,10 +291,10 @@ export default function JobsPage() {
       header: "Location",
     },
     {
-      accessorKey: "applicationDate",
+      accessorKey: "apply_at",
       header: "Application Date",
       cell: ({ row }) => {
-        return new Date(row.getValue("applicationDate")).toLocaleDateString();
+        return new Date(row.getValue("apply_at")).toLocaleDateString();
       },
     },
     {
@@ -221,6 +302,68 @@ export default function JobsPage() {
       header: "Status",
       cell: ({ row }) => {
         return <StatusBadge status={row.getValue("status")} />;
+      },
+    },
+    {
+      accessorKey: "name",
+      header: "Contact Name",
+      cell: ({ row }) => {
+        return row.getValue("name") || "—";
+      },
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => {
+        return row.getValue("email") || "—";
+      },
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }) => {
+        return row.getValue("phone") || "—";
+      },
+    },
+    {
+      accessorKey: "source",
+      header: "Source",
+    },
+    {
+      accessorKey: "website",
+      header: "Website",
+      cell: ({ row }) => {
+        const value = row.getValue("website");
+        return value ? (
+          <a
+            href={String(value)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {String(value)}
+          </a>
+        ) : (
+          "-"
+        );
+      },
+    },
+    {
+      accessorKey: "followup_after_days",
+      header: "Follow-up After (Days)",
+      cell: ({ row }) => {
+        return row.getValue("followup_after_days") !== undefined
+          ? row.getValue("followup_after_days")
+          : "—";
+      },
+    },
+    {
+      accessorKey: "followup_freq",
+      header: "Follow-up Frequency",
+      cell: ({ row }) => {
+        return row.getValue("followup_freq") !== undefined
+          ? `${row.getValue("followup_freq")} days`
+          : "—";
       },
     },
     {
@@ -236,6 +379,10 @@ export default function JobsPage() {
               size="icon"
               className="h-8 w-8"
               title="View"
+              onClick={() => {
+                setSelectedJob(job);
+                setIsViewDialogOpen(true);
+              }}
             >
               <EyeIcon className="h-4 w-4" />
             </Button>
@@ -244,6 +391,11 @@ export default function JobsPage() {
               size="icon"
               className="h-8 w-8"
               title="Edit"
+              onClick={() => {
+                setSelectedJob(job);
+                setEditFormData({ ...job });
+                setIsEditDialogOpen(true);
+              }}
             >
               <PencilIcon className="h-4 w-4" />
             </Button>
@@ -252,6 +404,10 @@ export default function JobsPage() {
               size="icon"
               className="h-8 w-8 text-destructive hover:text-destructive"
               title="Delete"
+              onClick={() => {
+                setSelectedJob(job);
+                setIsDeleteDialogOpen(true);
+              }}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>
@@ -492,6 +648,347 @@ export default function JobsPage() {
           setPagination={setPagination}
         />
       )}
+      {/* View Job Application Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Job Application Details</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {selectedJob && (
+              <>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Job Title</Label>
+                  <div className="font-medium">{selectedJob.apply_for}</div>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Company</Label>
+                  <div>{selectedJob.company}</div>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Location</Label>
+                  <div>{selectedJob.location}</div>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Application Date</Label>
+                  <div>
+                    {new Date(selectedJob.apply_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Status</Label>
+                  <StatusBadge status={selectedJob.status} />
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Source</Label>
+                  <div>{selectedJob.source}</div>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label>Website</Label>
+                  {selectedJob.website ? (
+                    <a
+                      href={selectedJob.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline break-all"
+                    >
+                      {selectedJob.website}
+                    </a>
+                  ) : (
+                    "-"
+                  )}
+                </div>
+                {selectedJob.resume && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Resume</Label>
+                    <div className="truncate max-w-[200px]">
+                      {selectedJob.resume}
+                    </div>
+                  </div>
+                )}{" "}
+                {selectedJob.cover && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Cover Letter</Label>
+                    <div className="truncate max-w-[200px]">
+                      {selectedJob.cover}
+                    </div>
+                  </div>
+                )}
+                {/* New fields */}
+                {selectedJob.name && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Contact Name</Label>
+                    <div>{selectedJob.name}</div>
+                  </div>
+                )}
+                {selectedJob.email && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Email</Label>
+                    <div>{selectedJob.email}</div>
+                  </div>
+                )}
+                {selectedJob.phone && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Phone</Label>
+                    <div>{selectedJob.phone}</div>
+                  </div>
+                )}
+                {selectedJob.followup_after_days !== undefined && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Follow-up After (Days)</Label>
+                    <div>{selectedJob.followup_after_days}</div>
+                  </div>
+                )}
+                {selectedJob.followup_freq !== undefined && (
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <Label>Follow-up Frequency</Label>
+                    <div>{selectedJob.followup_freq} days</div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Edit Job Application Dialog */}
+      <Dialog
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isSubmitting) {
+            setIsEditDialogOpen(false);
+          }
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-md max-h-[90vh] overflow-y-scroll"
+          closeDisabled={isSubmitting}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Job Application</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="apply_for">Job Title</Label>
+              <Input
+                id="apply_for"
+                value={editFormData.apply_for || ""}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    apply_for: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="company">Company</Label>
+              <Input
+                id="company"
+                value={editFormData.company || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, company: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={editFormData.location || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, location: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="apply_at">Application Date</Label>
+              <Input
+                id="apply_at"
+                type="date"
+                value={
+                  editFormData.apply_at
+                    ? new Date(editFormData.apply_at)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    apply_at: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value) =>
+                  setEditFormData({
+                    ...editFormData,
+                    status: value as JobApplication["status"],
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>{" "}
+            <div className="grid gap-2">
+              <Label htmlFor="source">Source</Label>
+              <Input
+                id="source"
+                value={editFormData.source || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, source: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                value={editFormData.website || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, website: e.target.value })
+                }
+              />
+            </div>
+            {/* New fields */}
+            <div className="grid gap-2">
+              <Label htmlFor="name">Contact Name</Label>
+              <Input
+                id="name"
+                value={editFormData.name || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, name: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={editFormData.email || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, email: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={editFormData.phone || ""}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, phone: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="followup_after_days">
+                Follow-up After (Days)
+              </Label>
+              <Input
+                id="followup_after_days"
+                type="number"
+                value={
+                  editFormData.followup_after_days !== undefined
+                    ? editFormData.followup_after_days
+                    : ""
+                }
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    followup_after_days: e.target.value
+                      ? parseInt(e.target.value)
+                      : undefined,
+                  })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="followup_freq">Follow-up Frequency (Days)</Label>
+              <Input
+                id="followup_freq"
+                type="number"
+                value={
+                  editFormData.followup_freq !== undefined
+                    ? editFormData.followup_freq
+                    : ""
+                }
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    followup_freq: e.target.value
+                      ? parseInt(e.target.value)
+                      : undefined,
+                  })
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={handleUpdateJob} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Job Application Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isSubmitting) {
+            setIsDeleteDialogOpen(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md" closeDisabled={isSubmitting}>
+          <DialogHeader>
+            <DialogTitle>Delete Job Application</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this job application for{" "}
+              {selectedJob?.apply_for} at {selectedJob?.company}? This action
+              cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteJob}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
