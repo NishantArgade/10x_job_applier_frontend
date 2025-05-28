@@ -174,17 +174,26 @@ export default function JobsPage() {
       await axiosClient.put(`/api/v1/jobs/${selectedJob.id}`, data);
       setJobApplications((prev) =>
         prev.map((job) =>
-          job.id === selectedJob.id ? ({ ...job, ...data } as JobApplication) : job
+          job.id === selectedJob.id
+            ? ({ ...job, ...data } as JobApplication)
+            : job
         )
       );
       setIsEditDialogOpen(false);
       setIsSubmitting(false);
     } catch (error: any) {
       // Laravel validation error handling
-      if (error.response && error.response.status === 422 && error.response.data.errors) {
+      if (
+        error.response &&
+        error.response.status === 422 &&
+        error.response.data.errors
+      ) {
         const apiErrors = error.response.data.errors;
         Object.keys(apiErrors).forEach((field) => {
-          setError(field as keyof typeof errors, { type: "server", message: apiErrors[field][0] });
+          setError(field as keyof typeof errors, {
+            type: "server",
+            message: apiErrors[field][0],
+          });
         });
       }
       setIsSubmitting(false);
@@ -595,7 +604,8 @@ export default function JobsPage() {
                   <XCircleIcon className="h-3 w-3" />
                 )}
               </div>
-            ))}            {selectedStatuses.length > 0 && (
+            ))}{" "}
+            {selectedStatuses.length > 0 && (
               <Button
                 variant="ghost"
                 className="text-xs h-7 px-2"
@@ -703,26 +713,33 @@ export default function JobsPage() {
           setPagination={setPagination}
         />
       )}
-      {/* View Job Application Dialog */}
+      {/* View Job Application Dialog */}{" "}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-w-[90vw] max-h-[90vh] overflow-y-scroll">
           <DialogHeader>
             <DialogTitle>Job Application Details</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {selectedJob && (
               <>
+                {" "}
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Job Title</Label>
-                  <div className="font-medium">{selectedJob.apply_for}</div>
+                  <div className="font-medium truncate max-w-[220px]">
+                    {selectedJob.apply_for}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Company</Label>
-                  <div>{selectedJob.company}</div>
-                </div>
+                  <div className="truncate max-w-[220px]">
+                    {selectedJob.company}
+                  </div>
+                </div>{" "}
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Location</Label>
-                  <div>{selectedJob.location}</div>
+                  <div className="truncate max-w-[220px]">
+                    {selectedJob.location}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Application Date</Label>
@@ -736,8 +753,10 @@ export default function JobsPage() {
                 </div>
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Source</Label>
-                  <div>{selectedJob.source}</div>
-                </div>
+                  <div className="truncate max-w-[220px]">
+                    {selectedJob.source}
+                  </div>
+                </div>{" "}
                 <div className="grid grid-cols-2 items-center gap-4">
                   <Label>Website</Label>
                   {selectedJob.website ? (
@@ -745,7 +764,7 @@ export default function JobsPage() {
                       href={selectedJob.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 underline break-all"
+                      className="text-blue-600 underline truncate max-w-[220px] hover:overflow-visible hover:text-clip"
                     >
                       {selectedJob.website}
                     </a>
@@ -768,36 +787,46 @@ export default function JobsPage() {
                       {selectedJob.cover}
                     </div>
                   </div>
-                )}
+                )}{" "}
                 {/* New fields */}
                 {selectedJob.name && (
                   <div className="grid grid-cols-2 items-center gap-4">
                     <Label>Contact Name</Label>
-                    <div>{selectedJob.name}</div>
+                    <div className="truncate max-w-[220px]">
+                      {selectedJob.name}
+                    </div>
                   </div>
                 )}
                 {selectedJob.email && (
                   <div className="grid grid-cols-2 items-center gap-4">
                     <Label>Email</Label>
-                    <div>{selectedJob.email}</div>
+                    <div className="truncate max-w-[220px]">
+                      {selectedJob.email}
+                    </div>
                   </div>
                 )}
                 {selectedJob.phone && (
                   <div className="grid grid-cols-2 items-center gap-4">
                     <Label>Phone</Label>
-                    <div>{selectedJob.phone}</div>
+                    <div className="truncate max-w-[220px]">
+                      {selectedJob.phone}
+                    </div>
                   </div>
-                )}
+                )}{" "}
                 {selectedJob.followup_after_days !== undefined && (
                   <div className="grid grid-cols-2 items-center gap-4">
                     <Label>Follow-up After (Days)</Label>
-                    <div>{selectedJob.followup_after_days}</div>
+                    <div className="truncate max-w-[220px]">
+                      {selectedJob.followup_after_days}
+                    </div>
                   </div>
                 )}
                 {selectedJob.followup_freq !== undefined && (
                   <div className="grid grid-cols-2 items-center gap-4">
                     <Label>Follow-up Frequency</Label>
-                    <div>{selectedJob.followup_freq} days</div>
+                    <div className="truncate max-w-[220px]">
+                      {selectedJob.followup_freq} days
+                    </div>
                   </div>
                 )}
               </>
@@ -833,7 +862,9 @@ export default function JobsPage() {
                 className={errors.apply_for ? "border-red-500" : ""}
               />
               {errors.apply_for && (
-                <p className="text-red-500 text-xs mt-1">{errors.apply_for.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.apply_for.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -844,7 +875,9 @@ export default function JobsPage() {
                 className={errors.company ? "border-red-500" : ""}
               />
               {errors.company && (
-                <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.company.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -855,7 +888,9 @@ export default function JobsPage() {
                 className={errors.location ? "border-red-500" : ""}
               />
               {errors.location && (
-                <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.location.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -867,7 +902,9 @@ export default function JobsPage() {
                 className={errors.apply_at ? "border-red-500" : ""}
               />
               {errors.apply_at && (
-                <p className="text-red-500 text-xs mt-1">{errors.apply_at.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.apply_at.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -881,7 +918,9 @@ export default function JobsPage() {
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <SelectTrigger className={errors.status ? "border-red-500" : ""}>
+                    <SelectTrigger
+                      className={errors.status ? "border-red-500" : ""}
+                    >
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -895,7 +934,9 @@ export default function JobsPage() {
                 )}
               />
               {errors.status && (
-                <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.status.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -906,7 +947,9 @@ export default function JobsPage() {
                 className={errors.source ? "border-red-500" : ""}
               />
               {errors.source && (
-                <p className="text-red-500 text-xs mt-1">{errors.source.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.source.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -917,7 +960,9 @@ export default function JobsPage() {
                 className={errors.website ? "border-red-500" : ""}
               />
               {errors.website && (
-                <p className="text-red-500 text-xs mt-1">{errors.website.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.website.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -928,7 +973,9 @@ export default function JobsPage() {
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
-                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -940,7 +987,9 @@ export default function JobsPage() {
                 className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -951,11 +1000,15 @@ export default function JobsPage() {
                 className={errors.phone ? "border-red-500" : ""}
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.phone.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="followup_after_days">Follow-up After (Days)</Label>
+              <Label htmlFor="followup_after_days">
+                Follow-up After (Days)
+              </Label>
               <Input
                 id="followup_after_days"
                 type="number"
@@ -963,7 +1016,9 @@ export default function JobsPage() {
                 className={errors.followup_after_days ? "border-red-500" : ""}
               />
               {errors.followup_after_days && (
-                <p className="text-red-500 text-xs mt-1">{errors.followup_after_days.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.followup_after_days.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -975,7 +1030,9 @@ export default function JobsPage() {
                 className={errors.followup_freq ? "border-red-500" : ""}
               />
               {errors.followup_freq && (
-                <p className="text-red-500 text-xs mt-1">{errors.followup_freq.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.followup_freq.message}
+                </p>
               )}
             </div>
           </div>
@@ -1007,8 +1064,10 @@ export default function JobsPage() {
           <div className="py-4">
             <p className="text-gray-500 dark:text-gray-400">
               Are you sure you want to delete this job application for{" "}
-              {selectedJob?.apply_for} at {selectedJob?.company}? This action
-              cannot be undone.
+              <span className="inline-block truncate max-w-[300px] align-bottom">
+                {selectedJob?.apply_for} at {selectedJob?.company}
+              </span>
+              ? This action cannot be undone.
             </p>
           </div>
           <DialogFooter>
@@ -1024,7 +1083,8 @@ export default function JobsPage() {
             >
               {isSubmitting ? "Deleting..." : "Delete"}
             </Button>
-          </DialogFooter>        </DialogContent>
+          </DialogFooter>{" "}
+        </DialogContent>
       </Dialog>
     </div>
   );
