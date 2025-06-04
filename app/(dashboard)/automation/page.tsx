@@ -35,7 +35,8 @@ interface AutomationStatus {
 export default function AutomationPage() {
   const [automations, setAutomations] = useState<AutomationStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [processingBots, setProcessingBots] = useState<Set<number>>(new Set());
+  const [startingBots, setStartingBots] = useState<Set<number>>(new Set());
+  const [stoppingBots, setStoppingBots] = useState<Set<number>>(new Set());
 
   // Mock data - in real app, this would come from API
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function AutomationPage() {
     }, 1000);
   }, []); const handleStartBot = async (id: number) => {
     try {
-      setProcessingBots(prev => new Set(prev).add(id));
+      setStartingBots(prev => new Set(prev).add(id));
 
       // Find the automation to determine which API endpoint to call
       const automation = automations.find(a => a.id === id);
@@ -114,7 +115,7 @@ export default function AutomationPage() {
       console.error("Failed to start bot:", error);
       toast.error("Failed to start bot. Please check if the server is running.");
     } finally {
-      setProcessingBots(prev => {
+      setStartingBots(prev => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -122,7 +123,7 @@ export default function AutomationPage() {
     }
   }; const handleStopBot = async (id: number) => {
     try {
-      setProcessingBots(prev => new Set(prev).add(id));
+      setStoppingBots(prev => new Set(prev).add(id));
 
       // Find the automation to get its name for the toast message
       const automation = automations.find(a => a.id === id);
@@ -153,7 +154,7 @@ export default function AutomationPage() {
       console.error("Failed to stop bot:", error);
       toast.error("Failed to stop bot. Please check if the server is running.");
     } finally {
-      setProcessingBots(prev => {
+      setStoppingBots(prev => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -162,7 +163,11 @@ export default function AutomationPage() {
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A"; return new Date(dateString).toLocaleString();
+    if (!dateString) return "N/A"; return new Date(dateString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+  });
   };
 
   return (
@@ -214,7 +219,7 @@ export default function AutomationPage() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${automation.status === "active"
                         ? "bg-green-500 animate-pulse"
                         : "bg-gray-400"
@@ -225,7 +230,7 @@ export default function AutomationPage() {
                       }`}>
                       {automation.status === "active" ? "Running" : "Stopped"}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </CardHeader>              <CardContent className="pb-4">
                 <div className="flex flex-col gap-4">
@@ -263,19 +268,19 @@ export default function AutomationPage() {
                   <Button
                     onClick={() => handleStartBot(automation.id)}
                     className="flex-1 bg-green-600 hover:bg-green-700"
-                    disabled={isLoading || processingBots.has(automation.id)}
+                    disabled={isLoading || startingBots.has(automation.id) || stoppingBots.has(automation.id)}
                   >
                     <PlayIcon className="h-4 w-4 mr-2" />
-                    {processingBots.has(automation.id) ? "Starting..." : "Start Bot"}
+                    {startingBots.has(automation.id) ? "Starting..." : "Start Bot"}
                   </Button>
                   <Button
                     onClick={() => handleStopBot(automation.id)}
                     variant="outline"
                     className="flex-1 border-red-300 text-red-600 hover:bg-red-50/50 hover:border-red-400 hover:text-red-700 dark:hover:bg-red-900/10"
-                    disabled={isLoading || processingBots.has(automation.id)}
+                    disabled={isLoading || startingBots.has(automation.id) || stoppingBots.has(automation.id)}
                   >
                     <StopIcon className="h-4 w-4 mr-2" />
-                    {processingBots.has(automation.id) ? "Stopping..." : "Stop Bot"}
+                    {stoppingBots.has(automation.id) ? "Stopping..." : "Stop Bot"}
                   </Button>
                 </div>
               </CardFooter>

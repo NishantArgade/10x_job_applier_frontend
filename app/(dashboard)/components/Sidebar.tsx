@@ -36,17 +36,15 @@ const SidebarItem = ({
       href={href}
       className={`flex items-center w-full gap-4 p-2 rounded transition-colors
         ${isOpen ? "justify-start" : "justify-center"}
-        ${
-          isActive
-            ? "bg-gray-300 dark:bg-gray-700 text-black dark:text-white"
-            : "hover:bg-gray-200 dark:hover:bg-gray-800"
+        ${isActive
+          ? "bg-gray-300 dark:bg-gray-700 text-black dark:text-white"
+          : "hover:bg-gray-200 dark:hover:bg-gray-800"
         }`}
     >
       {icon}
       <span
-        className={`overflow-hidden text-base ${
-          isOpen ? "opacity-100 w-auto" : "hidden w-0"
-        }`}
+        className={`overflow-hidden text-base ${isOpen ? "opacity-100 w-auto" : "hidden w-0"
+          }`}
       >
         {text}
       </span>
@@ -80,11 +78,10 @@ const Sidebar = ({
 
   return (
     <div
-      className={`flex flex-col border-r dark:border-gray-800 shadow-md border-gray-200 fixed left-0 top-0 h-full transition-[width] ${
-        isOpen
+      className={`flex flex-col border-r dark:border-gray-800 shadow-md border-gray-200 fixed left-0 top-0 h-full transition-[width] ${isOpen
           ? "duration-300 w-full md:w-64"
           : "duration-0 w-20  hidden md:flex"
-      }`}
+        }`}
     >
       {/* Header */}
       <div className="flex items-center gap-2 py-2 px-4 p-0 border-b dark:border-gray-800 border-gray-200">
@@ -125,12 +122,6 @@ const Sidebar = ({
           isOpen={isOpen}
         />
         <SidebarItem
-          icon={<Cog6ToothIcon className="w-5 h-5" />}
-          text="Automation"
-          href="/automation"
-          isOpen={isOpen}
-        />
-        <SidebarItem
           icon={<DocumentIcon className="w-5 h-5" />}
           text="Templates"
           href="/templates"
@@ -142,15 +133,20 @@ const Sidebar = ({
           href="/resumes"
           isOpen={isOpen}
         />
+        <SidebarItem
+          icon={<Cog6ToothIcon className="w-5 h-5" />}
+          text="Automation"
+          href="/automation"
+          isOpen={isOpen}
+        />
       </nav>
 
       {/* Footer */}
       <div className="flex flex-col gap-3 py-2 px-4 border-t dark:border-gray-800 border-gray-200">
         <button
           onClick={handleLogout}
-          className={`flex items-center w-full gap-3 p-2 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 ${
-            isOpen ? "justify-start" : "justify-center"
-          }`}
+          className={`flex items-center w-full gap-3 p-2 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-800 ${isOpen ? "justify-start" : "justify-center"
+            }`}
         >
           <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />
           <span className={`${isOpen ? "opacity-100 w-auto" : "hidden w-0"}`}>
