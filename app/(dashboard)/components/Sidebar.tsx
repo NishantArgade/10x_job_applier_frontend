@@ -7,15 +7,15 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import {
   HomeIcon,
-  FolderIcon,
-  UserIcon,
+  BriefcaseIcon,
+  IdentificationIcon,
   ArrowLeftEndOnRectangleIcon,
-  DocumentIcon,
+  ClipboardDocumentListIcon,
   DocumentTextIcon,
-  Cog6ToothIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+import BotIcon from "./BotIcon";
 
 const SidebarItem = ({
   icon,
@@ -83,10 +83,9 @@ const Sidebar = ({
           : "duration-0 w-20  hidden md:flex"
         }`}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 py-2 px-4 p-0 border-b dark:border-gray-800 border-gray-200">
+      {/* Header */}      <div className="flex items-center gap-2 py-2 px-4 p-0 border-b dark:border-gray-800 border-gray-200">
         <SidebarItem
-          icon={<UserIcon className="w-5 h-5" />}
+          icon={<IdentificationIcon className="w-5 h-5" />}
           text="Nishant"
           href="/profile"
           isOpen={isOpen}
@@ -108,21 +107,20 @@ const Sidebar = ({
           text="Dashboard"
           href="/dashboard"
           isOpen={isOpen}
-        />
-        <SidebarItem
-          icon={<DocumentArrowDownIcon className="w-5 h-5" />}
+        />        <SidebarItem
+          icon={<ArrowDownTrayIcon className="w-5 h-5" />}
           text="Import Jobs"
           href="/import-jobs"
           isOpen={isOpen}
         />
         <SidebarItem
-          icon={<FolderIcon className="w-5 h-5" />}
+          icon={<BriefcaseIcon className="w-5 h-5" />}
           text="Jobs"
           href="/jobs"
           isOpen={isOpen}
         />
         <SidebarItem
-          icon={<DocumentIcon className="w-5 h-5" />}
+          icon={<ClipboardDocumentListIcon className="w-5 h-5" />}
           text="Templates"
           href="/templates"
           isOpen={isOpen}
@@ -132,9 +130,8 @@ const Sidebar = ({
           text="Resumes"
           href="/resumes"
           isOpen={isOpen}
-        />
-        <SidebarItem
-          icon={<Cog6ToothIcon className="w-5 h-5" />}
+        />        <SidebarItem
+          icon={<BotIcon className="w-5 h-5" />}
           text="Automation"
           href="/automation"
           isOpen={isOpen}
