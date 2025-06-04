@@ -1,11 +1,15 @@
+import ComingSoon from "@/components/ui/coming-soon";
+
 export default async function Profile() {
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="h-40 bg-gray-800 rounded-lg col-span-1 md:col-span-2 lg:col-span-3">
-          Comming Soon...
-        </div>
-      </div>
+    <div className="container mx-auto py-6">
+      <ComingSoon
+        title="Profile Dashboard"
+        description="We're building an amazing profile management experience where you can customize your settings, manage your account, and track your application progress."
+        feature="Profile management"
+        timeline="in the next update"
+        variant="detailed"
+      />
     </div>
   );
 }
