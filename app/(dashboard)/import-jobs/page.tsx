@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { EmptyResumesIllustration, EmptyTemplatesIllustration } from "@/components/empty-states";
 
 const ImportJobsPage = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -35,13 +36,16 @@ const ImportJobsPage = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-
   useEffect(() => {
-    fetchResumes();
-    fetchTemplates();
+    const initializeData = async () => {
+      await Promise.all([fetchResumes(), fetchTemplates()]);
+      setInitialLoading(false);
+    };
+    initializeData();
   }, []);
   const fetchResumes = async () => {
     setIsLoadingResumes(true);
@@ -184,8 +188,63 @@ const ImportJobsPage = () => {
       );
     } finally {
       setIsLoading(false);
-    }
-  };
+    }  };
+
+  // Skeleton Loading UI
+  if (initialLoading) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="mb-6">
+          {/* Header skeleton */}
+          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/3 mb-3 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse"></div>
+          
+          {/* Download button skeleton */}
+          <div className="mt-2">
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* File upload area skeleton */}
+        <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center mb-6 bg-gray-50 dark:bg-gray-800/50 animate-pulse">
+          <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4"></div>
+          <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/3 mx-auto mb-2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-4"></div>
+          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-32 mx-auto"></div>
+        </div>
+
+        {/* Selection cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Resume card skeleton */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 animate-pulse">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/3"></div>
+              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded"></div>
+            </div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+          </div>
+
+          {/* Template card skeleton */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 animate-pulse">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/3"></div>
+              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded"></div>
+            </div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+          </div>
+        </div>
+
+        {/* Action buttons skeleton */}
+        <div className="flex justify-between items-center">
+          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -444,12 +503,17 @@ const ImportJobsPage = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                </div>
-              ) : resumes.length === 0 ? (
-                <div className="text-center p-4">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No resumes found
-                  </p>
+                </div>              ) : resumes.length === 0 ? (
+                <div className="text-center p-8 space-y-4">
+                  <EmptyResumesIllustration className="w-48 h-36 mx-auto" />
+                  <div className="space-y-2">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                      No resumes found
+                    </p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
+                      Upload a resume to get started with job applications
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
@@ -535,29 +599,17 @@ const ImportJobsPage = () => {
                           )}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">
-                        No resumes available
-                      </p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                        Create a resume in the Resume section first
-                      </p>
+                    ))                  ) : (
+                    <div className="text-center p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg space-y-4">
+                      <EmptyResumesIllustration className="w-48 h-36 mx-auto" />
+                      <div className="space-y-2">
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">
+                          No resumes available
+                        </p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">
+                          Create a resume in the Resume section first
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -740,12 +792,17 @@ const ImportJobsPage = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                </div>
-              ) : templates.length === 0 ? (
-                <div className="text-center p-4">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No templates found
-                  </p>
+                </div>              ) : templates.length === 0 ? (
+                <div className="text-center p-8 space-y-4">
+                  <EmptyTemplatesIllustration className="w-48 h-36 mx-auto" />
+                  <div className="space-y-2">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                      No templates found
+                    </p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
+                      Create a template to streamline your job applications
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
@@ -827,29 +884,17 @@ const ImportJobsPage = () => {
                           )}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
-                        />
-                      </svg>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">
-                        No templates available
-                      </p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                        Create a template in the Templates section first
-                      </p>
+                    ))                  ) : (
+                    <div className="text-center p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg space-y-4">
+                      <EmptyTemplatesIllustration className="w-48 h-36 mx-auto" />
+                      <div className="space-y-2">
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">
+                          No templates available
+                        </p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">
+                          Create a template in the Templates section first
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

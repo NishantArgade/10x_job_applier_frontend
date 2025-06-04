@@ -139,7 +139,7 @@ export default function Dashboard() {
   function StatsCard({ title, value, iconType, tooltip }: StatItem) {
     const backgroundClass = statBackgrounds[iconType || "default"];
     const iconColorClass = statIconColors[iconType || "default"];
-    
+
     return (
       <div className={`group relative ${backgroundClass} rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden`}>
         {/* Fade background pattern */}
@@ -190,29 +190,29 @@ export default function Dashboard() {
   }) {
     const handleClick = () => {
       router.push(href);
-    };    return (
-      <div 
+    }; return (
+      <div
         onClick={handleClick}
         className="group bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer transform hover:-translate-y-2 min-h-[140px] relative overflow-hidden"
       >
         {/* Background gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-50 dark:to-gray-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <div className="relative z-10 flex items-start space-x-4">
+        <div className="relative z-10 flex items-start space-x-4">
           <div className={`${color} ${hoverColor} p-3 rounded-xl text-white shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
             {icon}
           </div>
           <div className="flex-1 space-y-2">            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                {title}
-              </h3>
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-all duration-300">
-                {stats}
-              </span>
-            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+              {title}
+            </h3>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-all duration-300">
+              {stats}
+            </span>
+          </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">
               {description}
             </p>
-            
+
             {/* Click indicator */}
             <div className="flex items-center text-xs text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300 mt-2">
               <span>Click to explore →</span>
@@ -225,49 +225,49 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4">        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, index) => (
-            <div
-              key={index}
-              className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/30 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden"
-            >
-              {/* Skeleton fade background */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-4 right-4 w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded transform rotate-12 scale-150"></div>
-                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gray-300 dark:bg-gray-700 rounded transform -rotate-12 scale-125"></div>
-              </div>
-              
-              <div className="relative z-10 space-y-2">
-                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
-                <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
-              </div>
-              <div className="absolute top-4 right-4 w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
+      <div className="flex flex-col gap-4 space-y-8 mt-2">        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <div
+            key={index}
+            className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/30 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden"
+          >
+            {/* Skeleton fade background */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-4 right-4 w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded transform rotate-12 scale-150"></div>
+              <div className="absolute bottom-4 left-4 w-6 h-6 bg-gray-300 dark:bg-gray-700 rounded transform -rotate-12 scale-125"></div>
             </div>
-          ))}</div>
+
+            <div className="relative z-10 space-y-2">
+              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+            </div>
+            <div className="absolute top-4 right-4 w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
+          </div>
+        ))}</div>
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            App Features
+            Powerful Features
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">            {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 animate-pulse min-h-[140px]"
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-2/3"></div>
-                      <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-16"></div>
-                    </div>
-                    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
-                    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-4/5"></div>
-                    <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-20 mt-2"></div>
+            <div
+              key={index}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 animate-pulse min-h-[140px]"
+            >
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-16"></div>
                   </div>
+                  <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+                  <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-4/5"></div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-20 mt-2"></div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
         </div>
       </div>
@@ -284,7 +284,7 @@ export default function Dashboard() {
             value={stat.value}
             iconType={stat.iconType}
             tooltip={stat.tooltip}
-          />        ))}
+          />))}
       </div>
       <div className="space-y-4">
         <div className="flex items-center justify-between">

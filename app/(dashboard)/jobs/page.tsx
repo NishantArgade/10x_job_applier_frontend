@@ -90,6 +90,7 @@ export default function JobsPage() {
   const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -220,8 +221,9 @@ export default function JobsPage() {
     } catch (error) {
       console.error("Failed to delete job application:", error);
       setIsSubmitting(false);
-    }
-  };
+    }  };  useEffect(() => {
+    // Remove the separate initialization function since data fetching is handled below
+  }, []);
 
   useEffect(() => {
     const fetchJobApplications = async () => {
@@ -250,14 +252,16 @@ export default function JobsPage() {
 
         const response = await axiosClient.get(
           `/api/v1/jobs?${params.toString()}`
-        );
-
-        setJobApplications(response.data.data || []);
+        );        setJobApplications(response.data.data || []);
         setTotalCount(response.data.total || 0);
       } catch (error) {
         console.error("Failed to fetch job applications:", error);
       } finally {
         setLoading(false);
+        // Set initial loading to false after first successful load
+        if (initialLoading) {
+          setInitialLoading(false);
+        }
       }
     };
 
@@ -543,7 +547,6 @@ export default function JobsPage() {
     selectedStatuses,
     selectedSources,
   ]);
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -559,6 +562,7 @@ export default function JobsPage() {
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full"
+                disabled={initialLoading}
               />
               {searchTerm && (
                 <button
@@ -589,9 +593,11 @@ export default function JobsPage() {
                   "flex items-center gap-2 px-3 py-1 rounded-full border cursor-pointer transition-colors",
                   selectedStatuses.includes(status.value)
                     ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background border-input hover:bg-accent hover:text-accent-foreground"
+                    : "bg-background border-input hover:bg-accent hover:text-accent-foreground",
+                  initialLoading && "opacity-50 pointer-events-none"
                 )}
                 onClick={() => {
+                  if (initialLoading) return;
                   setSelectedStatuses((prev) =>
                     prev.includes(status.value)
                       ? prev.filter((s) => s !== status.value)
@@ -610,6 +616,7 @@ export default function JobsPage() {
                 variant="ghost"
                 className="text-xs h-7 px-2"
                 onClick={() => setSelectedStatuses([])}
+                disabled={initialLoading}
               >
                 Clear status
               </Button>
@@ -624,6 +631,7 @@ export default function JobsPage() {
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
+                disabled={initialLoading}
                 onClick={() => {
                   // Clear all filter states
                   setSearchTerm("");
@@ -654,7 +662,7 @@ export default function JobsPage() {
         </div>
       </div>{" "}
       {/* Search Results Summary */}
-      {!loading && (
+      {!loading && !initialLoading && (
         <div className="text-sm text-muted-foreground">
           {searchTerm ||
           selectedStatuses.length > 0 ||
@@ -698,8 +706,44 @@ export default function JobsPage() {
             <span>Showing all {totalCount} job applications</span>
           )}
         </div>
-      )}
-      {loading ? (
+      )}      {initialLoading ? (
+        <div className="space-y-4 mt-6 px-2">
+          {/* Data Table Skeleton */}
+          <div className="rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-800">
+            {/* Table Rows Skeleton */}
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="border-b last:border-b-0">
+                <div className="grid grid-cols-12 gap-4 p-4">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse col-span-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse col-span-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse col-span-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse w-20"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
+            <div className="flex gap-2">
+              <div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <div className="flex flex-col items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
           <p className="text-muted-foreground">Loading job applications...</p>

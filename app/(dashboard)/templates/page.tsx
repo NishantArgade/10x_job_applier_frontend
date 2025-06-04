@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyTemplatesIllustration } from "@/components/empty-states";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ interface Template {
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -70,9 +72,18 @@ export default function TemplatesPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    fetchTemplates();
+    async function initializeData() {
+      try {
+        await fetchTemplates();
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      } finally {
+        setInitialLoading(false);
+      }
+    }
+
+    initializeData();
   }, []);
 
   const handleCreateTemplate = async () => {
@@ -179,100 +190,132 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Templates</h1>
+    <div className="container mx-auto py-6">      <div className="flex justify-between items-center mb-6">
+      <h1 className="text-3xl font-bold pb-4">Templates</h1>
+      {templates.length > 0 && (
         <Button
           onClick={() => setIsCreateDialogOpen(true)}
           className="flex items-center gap-2"
         >
           <PlusCircleIcon className="h-4 w-4" /> Create Template
         </Button>
-      </div>{" "}
-      {loading ? (
-        <div className="flex flex-col justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground mt-4">Loading templates...</p>
-        </div>
-      ) : templates.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium">No templates found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Create a new template to get started
-            </p>
-            <Button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="mt-4"
-            >
-              Create Template
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
+      )}
+    </div>{" "}      {initialLoading ? (
+      <div className="space-y-6">
+       
+        {/* Template Cards Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <Card
-              key={template.id}
-              className="overflow-hidden  relative shadow-xl border-2 border-primary/60 dark:bg-gradient-to-br  dark:from-gray-900  dark:via-gray-800  dark:to-gray-900 rounded-2xl transition-all duration-200 hover:scale-[1.025] hover:shadow-2xl w-full flex flex-col justify-between"
-            >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 border-0 rounded-lg bg-white dark:bg-gray-800">
               <CardHeader className="pb-3">
-                {" "}
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-200">
-                    {template.name}
-                  </CardTitle>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-3/4"></div>
                 </div>
-                <CardDescription className="text-sm mt-2">
-                  {template.subject && (
-                    <div className="font-medium text-primary dark:text-primary truncate">
-                      {template.subject}
-                    </div>
-                  )}
-                  {/* <div className="text-muted-foreground mt-1 text-xs">
-                    Last updated: {formatDate(template.updated_at)}
-                  </div> */}
-                </CardDescription>
+                <div className="space-y-2 mt-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-2/3"></div>
+                </div>
               </CardHeader>
               <CardContent className="pt-0 flex-1">
-                <div
-                  className="line-clamp-6 text-muted-foreground text-sm leading-relaxed mt-2"
-                  dangerouslySetInnerHTML={{ __html: template.body }}
-                />
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-full"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-4/5"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-3/4"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-2/3"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-3/5"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-1/2"></div>
+                </div>
               </CardContent>
-              <CardFooter className="flex justify-end gap-2 pt-2 border-t border-border/40   dark:bg-gradient-to-br  dark:from-gray-900  dark:via-gray-900  dark:to-gray-800">
-                {" "}
-                <Button
-                  onClick={() => openViewDialog(template)}
-                  variant="ghost"
-                  size="sm"
-                  className="group/view flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  <EyeIcon className="h-4 w-4 mr-1 group-hover/view:text-primary" />{" "}
-                  View
-                </Button>
-                <Button
-                  onClick={() => openEditDialog(template)}
-                  variant="ghost"
-                  size="sm"
-                  className="group/edit flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  <PencilSquareIcon className="h-4 w-4 mr-1 group-hover/edit:text-primary" />{" "}
-                  Edit
-                </Button>
-                <Button
-                  onClick={() => openDeleteDialog(template)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 flex items-center gap-1"
-                >
-                  <TrashIcon className="h-4 w-4 mr-1" /> Delete
-                </Button>
+              <CardFooter className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-16"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-16"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-20"></div>
               </CardFooter>
             </Card>
           ))}
         </div>
-      )}
+      </div>
+    ) : loading ? (
+      <div className="flex flex-col justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground mt-4">Loading templates...</p>
+      </div>) : templates.length === 0 ? (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md mx-auto bg-gradient-to-br from-gray-100/80 to-gray-200/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl shadow-lg p-8 space-y-6 backdrop-blur-sm border-0">
+            <EmptyTemplatesIllustration className="mx-auto" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">No templates found</h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Create a new template to streamline your job applications
+              </p>
+            </div>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              Create Template
+            </Button>
+          </div>
+        </div>
+      ) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {templates.map((template) => (<Card
+          key={template.id}
+          className="overflow-hidden relative shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-0 rounded-lg w-full flex flex-col justify-between bg-white dark:bg-gray-800 min-h-[260px]"
+        >
+          <CardHeader className="pb-3">
+            {" "}
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-200">
+                {template.name}
+              </CardTitle>
+            </div>
+            <CardDescription className="text-sm mt-2">
+              {template.subject && (
+                <div className="font-medium text-primary dark:text-primary truncate">
+                  {template.subject}
+                </div>
+              )}
+              {/* <div className="text-muted-foreground mt-1 text-xs">
+                    Last updated: {formatDate(template.updated_at)}
+                  </div> */}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 flex-1">
+            <div
+              className="line-clamp-6 text-muted-foreground text-sm leading-relaxed mt-2"
+              dangerouslySetInnerHTML={{ __html: template.body }}
+            />
+          </CardContent>              <CardFooter className="flex justify-end gap-2 pt-2 border-t border-border/40 bg-gray-50 dark:bg-slate-600">
+            {" "}
+            <Button
+              onClick={() => openViewDialog(template)}
+              variant="ghost"
+              size="sm"
+              className="group/view flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <EyeIcon className="h-4 w-4 mr-1 group-hover/view:text-primary" />{" "}
+              View
+            </Button>
+            <Button
+              onClick={() => openEditDialog(template)}
+              variant="ghost"
+              size="sm"
+              className="group/edit flex items-center gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <PencilSquareIcon className="h-4 w-4 mr-1 group-hover/edit:text-primary" />{" "}
+              Edit
+            </Button>
+            <Button
+              onClick={() => openDeleteDialog(template)}
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 flex items-center gap-1"
+            >
+              <TrashIcon className="h-4 w-4 mr-1" /> Delete
+            </Button>
+          </CardFooter>
+        </Card>
+        ))}
+      </div>
+    )}
       {/* Create Template Dialog */}
       <Dialog
         open={isCreateDialogOpen}

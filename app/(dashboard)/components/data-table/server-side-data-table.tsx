@@ -64,14 +64,13 @@ export function ServerSideDataTable<TData, TValue>({
       pagination,
     },
   })
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-2">
         <DataTableViewOptions table={table} />
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-800">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -5,6 +5,8 @@ import {
   PlusCircleIcon,
   TrashIcon,
   XMarkIcon,
+  DocumentArrowUpIcon,
+  DocumentIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyResumesIllustration } from "@/components/empty-states";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +44,7 @@ interface Resume {
 export default function ResumesPage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -48,6 +52,7 @@ export default function ResumesPage() {
   const [currentResume, setCurrentResume] = useState<Resume | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const fetchResumes = async () => {
     try {
@@ -63,11 +68,19 @@ export default function ResumesPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    fetchResumes();
-  }, []);
+    async function initializeData() {
+      try {
+        await fetchResumes();
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      } finally {
+        setInitialLoading(false);
+      }
+    }
 
+    initializeData();
+  }, []);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -76,6 +89,31 @@ export default function ResumesPage() {
         return;
       }
 
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type !== "application/pdf") {
+        toast.error("Only PDF files are accepted");
+        return;
+      }
       setSelectedFile(file);
     }
   };
@@ -196,87 +234,105 @@ export default function ResumesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Resumes</h1>
+    <div className="container mx-auto px-4 sm:px-6 py-6">      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4">Resumes</h1>
+      {resumes.length > 0 && (
         <Button
           onClick={() => setIsUploadDialogOpen(true)}
           className="flex items-center gap-2 w-full sm:w-auto"
         >
           <PlusCircleIcon className="h-4 w-4" /> Upload Resume
         </Button>
-      </div>
-
-      {loading ? (
-        <div className="flex flex-col justify-center items-center h-48 sm:h-64">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground mt-4 text-sm sm:text-base">
-            Loading resumes...
-          </p>
-        </div>
-      ) : resumes.length === 0 ? (
-        <Card className="text-center py-8 sm:py-12 px-4">
-          <CardContent className="pt-4 sm:pt-6">
-            <h3 className="text-lg font-medium">No resumes found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Upload a resume to get started
-            </p>
-            <Button
-              onClick={() => setIsUploadDialogOpen(true)}
-              className="mt-4 w-full sm:w-auto"
-            >
-              Upload Resume
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
+      )}
+    </div>{initialLoading ? (
+      <div className="space-y-6">
+        {/* Resume Cards Grid Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-          {resumes.map((resume) => (
-            <Card
-              key={resume.id}
-              className="relative overflow-hidden shadow-xl border-2 border-primary/60 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl transition-all duration-200 hover:scale-[1.025] hover:shadow-2xl w-full flex flex-col justify-between"
-              style={{ height: "auto", minHeight: "350px" }}
-            >
-              <CardHeader className="pb-2 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm sm:text-md md:text-md font-bold truncate text-white flex-1">
-                    {resume.original_filename}
-                  </CardTitle>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 border-0 rounded-lg bg-white dark:bg-gray-800" style={{ minHeight: "350px" }}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">                    <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-3/4"></div>
                 </div>
-                <p className="text-xs text-gray-300 mt-1">
-                  Added on:{" "}
-                  <span className="font-medium">
-                    {formatDate(resume.created_at)}
-                  </span>
-                </p>
+                <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-1/2 mt-2"></div>
               </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center p-2">
-                <div className="w-full h-[180px] sm:h-[220px] md:h-[250px] rounded-lg overflow-hidden border border-gray-700 bg-black/40 shadow-inner">
-                  <PdfThumbnail filename={resume.original_filename} />
-                </div>
+              <CardContent className="flex-1 flex items-center justify-center p-2">                  <div className="w-full h-[180px] sm:h-[220px] md:h-[250px] rounded-lg bg-gray-200 dark:bg-gray-600 animate-pulse flex items-center justify-center">
+                <div className="w-16 h-20 bg-gray-300 dark:bg-gray-500 rounded animate-pulse"></div>
+              </div>
               </CardContent>
-              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 border-t border-border/40 bg-gray-900/80">
-                <Button
-                  onClick={() => handleViewResume(resume.download_url)}
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto font-semibold border-primary/60 text-primary bg-white/10 hover:bg-primary/10 hover:text-primary"
-                >
-                  <span className="mr-2">📄</span> View PDF
-                </Button>
-                <Button
-                  onClick={() => openDeleteDialog(resume)}
-                  variant="ghost"
-                  size="sm"
-                  className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 font-semibold"
-                >
-                  <TrashIcon className="h-5 w-5 mr-1" /> Delete
-                </Button>
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 border-t border-border/40">                  <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-full sm:w-20"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-full sm:w-20"></div>
               </CardFooter>
             </Card>
           ))}
         </div>
-      )}
+      </div>
+    ) : loading ? (
+      <div className="flex flex-col justify-center items-center h-48 sm:h-64">
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground mt-4 text-sm sm:text-base">
+          Loading resumes...
+        </p>        </div>) : resumes.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center max-w-md mx-auto bg-gradient-to-br from-gray-100/80 to-gray-200/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl shadow-lg p-8 space-y-6 backdrop-blur-sm border-0">
+              <EmptyResumesIllustration className="mx-auto" />
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">No resumes found</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Upload a resume to get started with your job applications
+                </p>
+              </div>
+              <Button
+                onClick={() => setIsUploadDialogOpen(true)}
+                className="w-full sm:w-auto"
+              >
+                Upload Resume
+              </Button>
+            </div>
+          </div>
+        ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+        {resumes.map((resume) => (<Card
+          key={resume.id}
+          className="relative overflow-hidden shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.025] border-0 rounded-lg w-full flex flex-col justify-between bg-white dark:bg-gray-800"
+          style={{ height: "auto", minHeight: "350px" }}
+        >
+          <CardHeader className="pb-2 flex flex-col gap-2">
+            <div className="flex items-center justify-between">                  <CardTitle className="text-sm sm:text-md md:text-md font-bold truncate text-gray-900 dark:text-white flex-1">
+              {resume.original_filename}
+            </CardTitle>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              Added on:{" "}
+              <span className="font-medium">
+                {formatDate(resume.created_at)}
+              </span>
+            </p>
+          </CardHeader>
+          <CardContent className="flex-1 flex items-center justify-center p-2">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[250px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-inner">
+              <PdfThumbnail filename={resume.original_filename} />
+            </div>
+          </CardContent>              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 border-t border-border/40 bg-gray-50 dark:bg-gray-750">
+            <Button
+              onClick={() => handleViewResume(resume.download_url)}
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto font-semibold"
+            >
+              <span className="mr-2">📄</span> View PDF
+            </Button>                <Button
+              onClick={() => openDeleteDialog(resume)}
+              variant="ghost"
+              size="sm"
+              className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 font-semibold"
+            >
+              <TrashIcon className="h-5 w-5 mr-1" /> Delete
+            </Button>
+          </CardFooter>
+        </Card>
+        ))}
+      </div>
+    )}
 
       {/* Upload Resume Dialog */}
       <Dialog
@@ -291,46 +347,95 @@ export default function ResumesPage() {
         <DialogContent className="max-w-[90vw] sm:max-w-md" closeDisabled={isUploading}>
           <DialogHeader>
             <DialogTitle>Upload Resume</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
+          </DialogHeader>          <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="resume" className="flex items-center">
                 PDF File <span className="text-destructive ml-1">*</span>
               </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="resume"
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  ref={fileInputRef}
-                  className="hidden"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {selectedFile ? selectedFile.name : "Choose PDF file"}
-                </Button>
-                {selectedFile && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="px-2"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                  >
-                    <XMarkIcon className="h-4 w-4" />
-                  </Button>
+
+              {/* Hidden file input */}
+              <input
+                id="resume"
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                className="hidden"
+                required
+              />
+
+              {/* Drag and Drop Zone */}
+              <div
+                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer hover:border-primary/50 hover:bg-primary/5 ${isDragOver
+                    ? "border-primary bg-primary/10 scale-[1.02]"
+                    : selectedFile
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : "border-gray-300 dark:border-gray-600"
+                  }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div className="space-y-4">
+                  {selectedFile ? (
+                    <>
+                      <div className="flex justify-center">
+                        <DocumentIcon className="h-12 w-12 text-green-500" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-medium text-green-700 dark:text-green-400">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-sm text-green-600 dark:text-green-500">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                        >
+                          <XMarkIcon className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-center">
+                        <DocumentArrowUpIcon
+                          className={`h-12 w-12 transition-colors duration-200 ${isDragOver ? "text-primary" : "text-gray-400"
+                            }`}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-lg font-medium">
+                          {isDragOver ? "Drop your PDF here" : "Drag & drop your PDF"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          or <span className="text-primary font-medium">browse files</span>
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Visual feedback overlay */}
+                {isDragOver && (
+                  <div className="absolute inset-0 bg-primary/5 border-2 border-dashed border-primary rounded-lg flex items-center justify-center">
+                    <p className="text-primary font-medium text-lg">Drop PDF here</p>
+                  </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Only PDF files are accepted
+
+              <p className="text-xs text-muted-foreground text-center">
+                Only PDF files are accepted • Max size: 10MB
               </p>
             </div>
           </div>
