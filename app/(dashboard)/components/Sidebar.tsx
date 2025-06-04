@@ -12,6 +12,7 @@ import {
   ArrowLeftEndOnRectangleIcon,
   DocumentIcon,
   DocumentTextIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
@@ -104,8 +105,7 @@ const Sidebar = ({
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col px-4 py-2 gap-3 h-screen overflow-y-auto">
+      {/* Navigation */}      <nav className="flex flex-col px-4 py-2 gap-3 h-screen overflow-y-auto">
         <SidebarItem
           icon={<HomeIcon className="w-5 h-5" />}
           text="Dashboard"
@@ -123,7 +123,14 @@ const Sidebar = ({
           text="Jobs"
           href="/jobs"
           isOpen={isOpen}
-        />        <SidebarItem
+        />
+        <SidebarItem
+          icon={<Cog6ToothIcon className="w-5 h-5" />}
+          text="Automation"
+          href="/automation"
+          isOpen={isOpen}
+        />
+        <SidebarItem
           icon={<DocumentIcon className="w-5 h-5" />}
           text="Templates"
           href="/templates"
